@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { toAuthEmail } from "@/lib/memberAuth";
+import { isPasswordValid, PASSWORD_POLICY_MESSAGE } from "@/lib/passwordPolicy";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -9,6 +10,10 @@ export async function POST(req: NextRequest) {
 
   if (!memberId || !password) {
     return NextResponse.json({ error: "会員IDとパスワードを入力してください。" }, { status: 400 });
+  }
+
+  if (!isPasswordValid(password)) {
+    return NextResponse.json({ error: PASSWORD_POLICY_MESSAGE }, { status: 400 });
   }
 
   const { data: existingGarden, error: gardenLookupError } = await supabaseAdmin
@@ -22,7 +27,7 @@ export async function POST(req: NextRequest) {
   }
   if (existingGarden) {
     return NextResponse.json(
-      { error: "この会員IDは既に登録されています。ログインをお試しください。" },
+      { error: "この会員IDは既に登録されています。" },
       { status: 409 }
     );
   }

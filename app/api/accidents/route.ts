@@ -52,7 +52,8 @@ const buildFoodNameMap = async (client: SupabaseClient<Database>, foodIds: numbe
 const mapAccidentItems = async (
   client: SupabaseClient<Database>,
   accidents: AccidentRow[],
-  childRows: Array<{ id: string; name: string | null }>
+  childRows: Array<{ id: string; name: string | null }>,
+  options: { includeChildName: boolean }
 ) => {
   const childNameMap = new Map<string, string>(childRows.map((row) => [row.id, (row.name ?? "").trim()]));
 
@@ -64,7 +65,9 @@ const mapAccidentItems = async (
   return accidents.map((row) => ({
     id: row.id,
     created_at: row.created_at,
-    child_name: row.child_id ? childNameMap.get(row.child_id) ?? "" : "",
+    // is_public=trueの行は未ログインの第三者にも配信されるため、
+    // 園児の実名(PII)は includeChildName=false のときは含めない。
+    child_name: options.includeChildName && row.child_id ? childNameMap.get(row.child_id) ?? "" : "",
     food_name: typeof row.food_id === "number" ? foodNameMap.get(row.food_id) ?? "" : "",
     accident_content: row.content ?? "",
     public: row.is_public,
@@ -94,16 +97,8 @@ export async function GET(req: NextRequest) {
       }
 
       const accidents = accidentData ?? [];
-      const childIds = Array.from(
-        new Set(accidents.map((row) => row.child_id).filter((id): id is string => Boolean(id)))
-      );
-      const { data: childData } = await supabase
-        .from("children")
-        .select("id, name")
-        .in("id", childIds.length > 0 ? childIds : ["00000000-0000-0000-0000-000000000000"])
-        .returns<Array<{ id: string; name: string | null }>>();
-
-      const items = await mapAccidentItems(supabase, accidents, childData ?? []);
+      // 未ログインの公開フィードなので、園児の実名は解決・返却しない。
+      const items = await mapAccidentItems(supabase, accidents, [], { includeChildName: false });
       return NextResponse.json({ items });
     }
 
@@ -136,7 +131,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "取得に失敗しました" }, { status: 500 });
     }
 
-    const items = await mapAccidentItems(authedSupabase, accidents, childData ?? []);
+    const items = await mapAccidentItems(authedSupabase, accidents, childData ?? [], { includeChildName: true });
     return NextResponse.json({ items });
   } catch (err) {
     console.error(err);
