@@ -48,6 +48,7 @@ export default function Page1() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [memberId, setMemberId] = useState<string | null>(null);
+  const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [hiyariNews, setHiyariNews] = useState<
     Array<{
       id: number;
@@ -123,6 +124,7 @@ export default function Page1() {
     window.dispatchEvent(new Event("yochi-auth-changed"));
     setIsLoggedIn(false);
     setMemberId(null);
+    setShowAccountMenu(false);
     router.replace("/");
   };
 
@@ -158,7 +160,7 @@ export default function Page1() {
               )}
               <button
                 type="button"
-                onClick={handleLogout}
+                onClick={() => setShowAccountMenu(true)}
                 className="rounded-md border-2 border-[#cda982] bg-[#f6f2ee] px-6 py-1 text-xs font-bold text-[#4b4038] hover:opacity-85 sm:text-sm"
               >
                 ログアウト
@@ -166,6 +168,39 @@ export default function Page1() {
             </div>
           )}
         </div>
+
+        {showAccountMenu && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+            onClick={() => setShowAccountMenu(false)}
+          >
+            <div
+              className="flex w-full max-w-xs flex-col gap-3 rounded-2xl bg-white p-6 shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full rounded-md border-2 border-[#cda982] bg-[#f6f2ee] px-6 py-2 text-sm font-bold text-[#4b4038] hover:opacity-85"
+              >
+                ログアウト
+              </button>
+              <Link
+                href="/account/delete"
+                className="w-full rounded-md border-2 border-red-300 bg-[#f6f2ee] px-6 py-2 text-center text-sm font-bold text-red-700 hover:opacity-85"
+              >
+                アカウント削除
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowAccountMenu(false)}
+                className="text-xs font-semibold text-[#6d6055] hover:opacity-70"
+              >
+                閉じる
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="mb-4 select-none sm:mb-6">
           <Image

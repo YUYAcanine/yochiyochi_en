@@ -1029,7 +1029,7 @@ export default function Page4() {
                     className="h-12 rounded bg-[#B79074] text-base font-bold text-white disabled:opacity-70"
                   >
                     {submitLoading
-                      ? "送信中"
+                      ? "登録中"
                       : editingAnswerId
                         ? "食材情報を更新"
                         : noEat.trim()
@@ -1237,7 +1237,7 @@ export default function Page4() {
                     disabled={submitLoading}
                     className="h-11 rounded bg-[#B79074] text-base font-bold text-white disabled:opacity-70"
                   >
-                    {submitLoading ? "送信中" : "保存"}
+                    {submitLoading ? "登録中" : "保存"}
                   </button>
                 </div>
               </form>
@@ -1401,7 +1401,7 @@ export default function Page4() {
                       disabled={submitLoading}
                       className="h-12 rounded bg-[#B79074] text-base font-bold text-white disabled:opacity-70"
                     >
-                      {submitLoading ? "送信中" : "登録"}
+                      {submitLoading ? "登録中" : "登録"}
                     </button>
                   </div>
                 </form>
@@ -1462,7 +1462,7 @@ export default function Page4() {
                       disabled={submitLoading}
                       className="h-12 rounded bg-[#B79074] text-base font-bold text-white disabled:opacity-70"
                     >
-                      {submitLoading ? "送信中" : "登録"}
+                      {submitLoading ? "登録中" : "登録"}
                     </button>
                   </div>
                 </form>
@@ -1524,7 +1524,7 @@ export default function Page4() {
                       disabled={submitLoading}
                       className="h-12 rounded bg-[#B79074] text-base font-bold text-white disabled:opacity-70"
                     >
-                      {submitLoading ? "送信中" : editingAccidentId != null ? "更新" : "登録"}
+                      {submitLoading ? "登録中" : editingAccidentId != null ? "更新" : "登録"}
                     </button>
                   </div>
                 </form>
@@ -1615,7 +1615,7 @@ export default function Page4() {
                                 disabled={submitLoading}
                                 className="h-10 rounded bg-[#B79074] text-sm font-bold text-white disabled:opacity-70"
                               >
-                                {submitLoading ? "送信中" : "保存"}
+                                {submitLoading ? "登録中" : "保存"}
                               </button>
                             </div>
                           </form>
