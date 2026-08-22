@@ -1,12 +1,13 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp, Pencil, Search, X } from "lucide-react";
 import { useMenuData } from "@/hooks/useMenuData";
 import { canon } from "@/lib/textNormalize";
 import Ribbon from "@/components/Ribbon";
 import { authedFetch } from "@/lib/apiFetch";
+import EditModal from "@/components/EditModal";
 
 type RegisterTab = "child" | "cook" | "hiyari";
 type ChildFormMode = "register" | "edit";
@@ -142,7 +143,7 @@ export default function Page4() {
   const [activeTab, setActiveTab] = useState<RegisterTab>("child");
 
   const [childName, setChildName] = useState("");
-  const [ageMonth, setAgeMonth] = useState("");
+  const [ageMonth, setAgeMonth] = useState("0");
   const [noEat, setNoEat] = useState("");
   const [note, setNote] = useState("");
   const [isNoEatChecked, setIsNoEatChecked] = useState(false);
@@ -150,6 +151,7 @@ export default function Page4() {
   const [editingAnswerId, setEditingAnswerId] = useState<string | null>(null);
   const [foodEditTargetName, setFoodEditTargetName] = useState<string | null>(null);
   const [editingSourceName, setEditingSourceName] = useState<string | null>(null);
+  const [showFoodForm, setShowFoodForm] = useState(false);
 
   const [accidentChildName, setAccidentChildName] = useState("");
   const [accidentFood, setAccidentFood] = useState("");
@@ -172,6 +174,8 @@ export default function Page4() {
   const [memberId, setMemberId] = useState<string | null>(null);
 
   const [showForm, setShowForm] = useState(false);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
   const [searchText, setSearchText] = useState("");
   const [expandedNames, setExpandedNames] = useState<Record<string, boolean>>({});
   const [cookEditTargetName, setCookEditTargetName] = useState<string | null>(null);
@@ -347,6 +351,15 @@ export default function Page4() {
     setSearchText("");
   }, [activeTab]);
 
+  useEffect(() => {
+    const measure = () => {
+      if (headerRef.current) setHeaderHeight(headerRef.current.offsetHeight);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [activeTab, authChecked]);
+
   if (!authChecked) return null;
 
   const toggleExpanded = (name: string) => {
@@ -355,7 +368,7 @@ export default function Page4() {
 
   const resetForms = () => {
     setChildName("");
-    setAgeMonth("");
+    setAgeMonth("0");
     setNoEat("");
     setNote("");
     setEditingAnswerId(null);
@@ -461,10 +474,11 @@ export default function Page4() {
       setEditingSourceName(name);
       setExpandedNames((prev) => ({ ...prev, [name]: true }));
       setChildName(name);
-      setAgeMonth(month ? String(month) : "");
+      setAgeMonth(String(month || 0));
       setNoEat("");
       setIsNoEatChecked(false);
       setNote("");
+      setShowFoodForm(false);
       setShowForm(false);
     } else {
       const target =
@@ -549,6 +563,25 @@ export default function Page4() {
     setNoEat(item.no_eat);
     setIsNoEatChecked(item.can_eat !== true);
     setNote(item.note ?? "");
+    setShowFoodForm(true);
+    setFormMsg(null);
+  };
+
+  const startAddFood = () => {
+    setEditingAnswerId(null);
+    setNoEat("");
+    setNote("");
+    setIsNoEatChecked(false);
+    setShowFoodForm(true);
+    setFormMsg(null);
+  };
+
+  const backToFoodList = () => {
+    setEditingAnswerId(null);
+    setNoEat("");
+    setNote("");
+    setIsNoEatChecked(false);
+    setShowFoodForm(false);
     setFormMsg(null);
   };
 
@@ -556,7 +589,7 @@ export default function Page4() {
     e.preventDefault();
     setFormMsg(null);
 
-    if (!childName || !ageMonth || !memberId) {
+    if (!childName || !memberId) {
       setFormMsg("すべての必須項目を入力してください。");
       return;
     }
@@ -591,59 +624,70 @@ export default function Page4() {
     }
   };
 
-  const handleInlineFoodSubmit = async (e: React.FormEvent) => {
+  const handleChildNameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormMsg(null);
 
-    if (!childName || !ageMonth || !memberId) {
+    if (!childName || !memberId) {
       setFormMsg("すべての必須項目を入力してください。");
       return;
     }
 
     setSubmitLoading(true);
     try {
-      if (!editingAnswerId && !noEat.trim()) {
-        const sourceName = editingSourceName ?? childName;
-        const targets = answerItems.filter((item) => item.child_name === sourceName);
+      const sourceName = editingSourceName ?? childName;
+      const targets = answerItems.filter((item) => item.child_name === sourceName);
 
-        if (targets.length === 0) {
-          throw new Error("no rows to update");
-        }
-
-        const requests = targets.map((item) =>
-          authedFetch("/api/enji-info", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              id: item.id,
-              child_name: childName,
-              age_month: Number(ageMonth),
-              no_eat: item.no_eat,
-              can_eat: item.can_eat === true,
-              note: item.note ?? "",
-            }),
-          })
-        );
-
-        const responses = await Promise.all(requests);
-        if (responses.some((res) => !res.ok)) throw new Error("bulk update failed");
-
-        setFormMsg("園児情報を更新しました。");
-        setEditingSourceName(childName);
-        setFoodEditTargetName(childName);
-        setReloadTick((prev) => prev + 1);
-        return;
+      if (targets.length === 0) {
+        throw new Error("no rows to update");
       }
 
-      if (!noEat.trim()) {
-        setFormMsg("食材名を入力してください。");
-        return;
-      }
-      if (noEatFoodId == null) {
-        setFormMsg("登録されている食材を選択してください。");
-        return;
-      }
+      const requests = targets.map((item) =>
+        authedFetch("/api/enji-info", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: item.id,
+            child_name: childName,
+            age_month: Number(ageMonth),
+            no_eat: item.no_eat,
+            can_eat: item.can_eat === true,
+            note: item.note ?? "",
+          }),
+        })
+      );
 
+      const responses = await Promise.all(requests);
+      if (responses.some((res) => !res.ok)) throw new Error("bulk update failed");
+
+      setReloadTick((prev) => prev + 1);
+      closeInlineEditor();
+    } catch {
+      setFormMsg("保存に失敗しました。");
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  const handleFoodFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormMsg(null);
+
+    if (!childName || !memberId) {
+      setFormMsg("すべての必須項目を入力してください。");
+      return;
+    }
+    if (!noEat.trim()) {
+      setFormMsg("食材名を入力してください。");
+      return;
+    }
+    if (noEatFoodId == null) {
+      setFormMsg("登録されている食材を選択してください。");
+      return;
+    }
+
+    setSubmitLoading(true);
+    try {
       const body = {
         child_name: childName,
         age_month: Number(ageMonth),
@@ -663,12 +707,8 @@ export default function Page4() {
 
       if (!res.ok) throw new Error("save failed");
 
-      setFormMsg(editingAnswerId ? "更新しました。" : "追加しました。");
       setReloadTick((prev) => prev + 1);
-      setEditingAnswerId(null);
-      setNoEat("");
-      setNote("");
-      setIsNoEatChecked(false);
+      backToFoodList();
     } catch {
       setFormMsg("保存に失敗しました。");
     } finally {
@@ -683,6 +723,7 @@ export default function Page4() {
     setNoEat("");
     setNote("");
     setIsNoEatChecked(false);
+    setShowFoodForm(false);
     setFormMsg(null);
   };
 
@@ -828,10 +869,6 @@ export default function Page4() {
       (item) => item.child_name === name && item.no_eat.trim().length > 0
     );
     const hiyariItems = accidentItems.filter((item) => item.child_name === name);
-    const month =
-      noEatItems[0]?.age_month ??
-      answerItems.find((item) => item.child_name === name)?.age_month ??
-      "-";
 
     return (
       <div key={name} className="flex items-start gap-2">
@@ -867,11 +904,10 @@ export default function Page4() {
                   e.stopPropagation();
                   openEditorForName(name);
                 }}
-                className="inline-flex items-center gap-1 rounded border border-[#B79074] px-2 py-1 text-sm font-bold text-[#765B49] hover:bg-[#F0E4D8]"
+                className="rounded p-1 text-[#2f2a27] hover:bg-[#e7ddd3]"
                 aria-label={`${name}を編集`}
               >
-                <Pencil size={15} />
-                編集
+                <Pencil size={18} />
               </button>
             </div>
           </div>
@@ -882,35 +918,12 @@ export default function Page4() {
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold">注意する食材</h3>
               </div>
-              <span className="text-lg font-semibold">月齢 : {month}</span>
             </div>
 
             {noEatItems.length > 0 ? (
               <div className="space-y-2">
                 {noEatItems.map((item) => (
                   <div key={item.id} className="flex items-center gap-2">
-                    {foodEditTargetName === name && (
-                      <div className="flex shrink-0 items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteFood(item)}
-                          className="inline-flex h-8 items-center gap-1 rounded border border-[#d64a3a] bg-white px-2 text-xs font-bold text-[#d64a3a]"
-                          aria-label={`${item.no_eat}を削除`}
-                        >
-                          <X size={13} strokeWidth={2.5} />
-                          削除
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleStartEditFood(item)}
-                          className="inline-flex h-8 items-center gap-1 rounded border border-[#765B49] bg-white px-2 text-xs font-bold text-[#765B49]"
-                          aria-label={`${item.no_eat}を編集`}
-                        >
-                          <Pencil size={13} />
-                          編集
-                        </button>
-                      </div>
-                    )}
                     <div className={`w-full rounded-md p-3 ${item.can_eat ? "bg-[#FFF2D2]" : "bg-[#f3e9e9]"}`}>
                       <div className="flex items-start justify-between gap-3">
                         <div>
@@ -927,126 +940,6 @@ export default function Page4() {
               </div>
             ) : (
               <p className="text-sm text-[#6b5a4e]">未登録です。</p>
-            )}
-
-            {foodEditTargetName === name && (
-              <form
-                onSubmit={handleInlineFoodSubmit}
-                onKeyDownCapture={preventImeEnterSubmit}
-                className="space-y-5 rounded-md border-2 border-[#D7C0AD] bg-[#FFFDF8] p-4"
-              >
-	                <div className="flex items-start justify-between gap-3 border-b border-[#E6D7C8] pb-3">
-	                  <div>
-	                    <h3 className="text-lg font-bold text-[#5C3A2E]">{name}の情報を編集</h3>
-	                    <p className="mt-1 text-sm text-[#6b5a4e]">
-	                      園児名・月齢の変更、注意する食材の追加や編集ができます。
-	                    </p>
-	                  </div>
-	                  <button
-	                    type="button"
-	                    onClick={closeInlineEditor}
-	                    className="shrink-0 rounded p-1 text-[#765B49] hover:bg-[#F0E4D8]"
-	                    aria-label="編集を閉じる"
-	                  >
-	                    <X size={20} />
-	                  </button>
-	                </div>
-
-	                <h4 className="font-bold text-[#5C3A2E]">基本情報</h4>
-	                <div className="grid grid-cols-2 gap-4">
-	                  <label className="text-base font-medium text-[#2f2a27]">
-	                    園児名
-	                    <SuggestionInput
-	                      value={childName}
-	                      onChangeValue={setChildName}
-	                      options={childOptions}
-	                      className="mt-1 h-11 w-full rounded border-[3px] border-[#7f7f7f] bg-transparent px-2"
-	                    />
-	                  </label>
-                  <label className="text-base font-medium text-[#2f2a27]">
-                    月齢
-                    <input
-                      type="number"
-                      min={0}
-                      value={ageMonth}
-                      onChange={(e) => setAgeMonth(e.target.value)}
-                      className="mt-1 h-11 w-full rounded border-[3px] border-[#7f7f7f] bg-transparent px-2"
-                    />
-                  </label>
-                </div>
-
-	                <div className="border-t border-[#E6D7C8] pt-4">
-	                  <h4 className="font-bold text-[#5C3A2E]">
-	                    {editingAnswerId ? "注意する食材を編集" : "注意する食材を追加"}
-	                  </h4>
-	                  <p className="mt-1 text-sm text-[#6b5a4e]">
-	                    食材を変更しない場合は、空欄のまま園児情報を保存できます。
-	                  </p>
-	                </div>
-
-                <div className="grid grid-cols-2 items-end gap-4">
-	                  <label className="text-base font-medium text-[#2f2a27]">
-	                    食材名 (選択)
-	                    <SuggestionInput
-	                      value={noEat}
-	                      onChangeValue={setNoEat}
-	                      options={cookFoodOptions}
-	                      className="mt-1 h-11 w-full rounded border-[3px] border-[#7f7f7f] bg-transparent px-2"
-	                    />
-	                  </label>
-                  <label className="inline-flex h-11 items-center justify-center gap-2 text-lg font-medium text-[#2f2a27]">
-                    <input
-                      type="checkbox"
-                      checked={isNoEatChecked}
-                      onChange={(e) => setIsNoEatChecked(e.target.checked)}
-                      className="h-6 w-6 rounded border-[3px] border-[#333]"
-                    />
-                    食べられない
-                  </label>
-                </div>
-
-                <label className="block text-base font-medium text-[#2f2a27]">
-                  具体的な内容 (注意事項等)
-                  <textarea
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    rows={4}
-                    className="mt-1 w-full rounded border-[3px] border-[#7f7f7f] bg-transparent p-2"
-                  />
-                </label>
-
-                <div className="grid grid-cols-2 gap-4 pt-2">
-                  <button
-                    type="button"
-                    onClick={closeInlineEditor}
-                    className="h-12 rounded border-[3px] border-[#B79074] bg-[#FFFDF8] text-base font-bold text-[#B79074]"
-                  >
-                    キャンセル
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitLoading}
-                    className="h-12 rounded bg-[#B79074] text-base font-bold text-white disabled:opacity-70"
-                  >
-                    {submitLoading
-                      ? "登録中"
-                      : editingAnswerId
-                        ? "食材情報を更新"
-                        : noEat.trim()
-                          ? "食材を追加"
-                          : "園児情報を保存"}
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteChildPanel(name)}
-                  disabled={submitLoading}
-                  className="w-full rounded border border-[#d64a3a] bg-white py-2 text-sm font-bold text-[#d64a3a] disabled:opacity-70"
-                >
-                  この園児を削除
-                </button>
-                {formMsg && <p className="text-sm text-[#6b5a4e]">{formMsg}</p>}
-              </form>
             )}
 
             {hiyariItems.length > 0 && (
@@ -1073,7 +966,6 @@ export default function Page4() {
     const items = mealItems.filter(
       (item) => item.child_name === name && item.record_type === type
     );
-    const month = items[0]?.age_month ?? "-";
 
     return (
       <div key={name} className="rounded-md border border-[#E6D7C8] bg-white p-4">
@@ -1122,7 +1014,6 @@ export default function Page4() {
               <h3 className="text-lg font-bold">
                 {type === "growth" ? "調理方法" : "ヒヤリハット"}
               </h3>
-              <span className="text-lg font-semibold">月齢 : {month}</span>
             </div>
             {items.length > 0 ? (
               items.slice(0, 5).map((item) => (
@@ -1199,82 +1090,44 @@ export default function Page4() {
           </div>
 
         {expandedNames[foodName] && (
-          <div className="mt-4 space-y-3">
-            {cookEditTargetName === foodName ? (
-              <form onSubmit={handleInlineCookSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-3">
-                {[
-                  { key: "phase1", label: "離乳初期" },
-                  { key: "phase2", label: "離乳中期" },
-                  { key: "phase3", label: "離乳後期" },
-                  { key: "phase4", label: "完了期" },
-                  { key: "phase5", label: "幼児期" },
-                ].map((phase) => (
-                  <div key={phase.key} className="grid grid-cols-[5.6rem_1fr] items-center gap-2">
-                    <div className="text-base font-bold text-[#2f2a27]">{phase.label}</div>
-                    <input
-                      type="text"
-                      value={cookDrafts[phase.key as keyof CookDrafts]}
-                      onChange={(e) =>
-                        setCookDrafts((prev) => ({
-                          ...prev,
-                          [phase.key]: e.target.value,
-                        }))
-                      }
-                      className="h-11 w-full rounded border-[3px] border-[#7f7f7f] bg-transparent px-2"
-                    />
-                  </div>
-                ))}
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <button
-                    type="button"
-                    onClick={cancelInlineCookEdit}
-                    className="h-11 rounded border-[3px] border-[#B79074] bg-[#FFFDF8] text-base font-bold text-[#B79074]"
-                  >
-                    キャンセル
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitLoading}
-                    className="h-11 rounded bg-[#B79074] text-base font-bold text-white disabled:opacity-70"
-                  >
-                    {submitLoading ? "登録中" : "保存"}
-                  </button>
+          <div className="mt-4 space-y-2">
+            {phases.map((phase) => (
+              <div key={phase.label} className="flex items-baseline gap-3">
+                <div className="w-16 shrink-0 text-sm font-bold text-[#5C3A2E]">{phase.label}</div>
+                <div className="text-sm text-[#2f2a27]">
+                  {phase.value?.trim() ? phase.value : "未登録"}
                 </div>
-              </form>
-            ) : (
-              phases.map((phase) => (
-                <div key={phase.label} className="grid grid-cols-[5.6rem_1fr] items-center gap-2">
-                  <div className="text-base font-bold text-[#2f2a27]">{phase.label}</div>
-                  <div className="rounded border-[3px] border-[#7f7f7f] bg-[#fafafa] px-3 py-2 text-base text-[#2f2a27]">
-                    {phase.value?.trim() ? phase.value : "未登録"}
-                  </div>
-                </div>
-              ))
-            )}
+              </div>
+            ))}
           </div>
         )}
       </div>
     );
   };
 
-  return (
-    <main className="min-h-screen bg-[#FFFDF8] text-[#2f2a27]">
-      <div className="mx-auto w-full max-w-4xl pb-8">
-        <Ribbon
-          href="/"
-          logoSrc="/yoyochi.jpg"
-          alt="よちヨチ ロゴ"
-          heightClass="h-24"
-          bgClass="bg-[#F0E4D8]"
-          logoClassName="h-20 w-auto object-contain"
-          rightContent={
-            memberId ? (
-              <p className="text-sm font-semibold text-[#2f2a27]">{memberId}さんのページ</p>
-            ) : null
-          }
-        />
+  const closeAddForm = () => {
+    resetForms();
+    setShowForm(false);
+  };
 
-        <div className="px-3 pt-28 sm:px-5">
+  return (
+    <main className="h-screen overflow-hidden bg-[#FFFDF8] text-[#2f2a27]">
+      <Ribbon
+        href="/"
+        logoSrc="/yoyochi.jpg"
+        alt="よちヨチ ロゴ"
+        heightClass="h-24"
+        bgClass="bg-[#F0E4D8]"
+        logoClassName="h-20 w-auto object-contain"
+        rightContent={
+          memberId ? (
+            <p className="text-sm font-semibold text-[#2f2a27]">{memberId}さんのページ</p>
+          ) : null
+        }
+      />
+
+      <div ref={headerRef} className="fixed inset-x-0 top-24 z-40 border-b border-[#E6D7C8] bg-[#FFFDF8] shadow-md">
+        <div className="mx-auto w-full max-w-4xl px-3 pb-3 pt-3 sm:px-5">
           <div className="grid grid-cols-3 gap-1 border-b-[6px] border-[#b79074]">
             <button
               type="button"
@@ -1348,307 +1201,493 @@ export default function Page4() {
               setShowForm((prev) => !prev);
               setFormMsg(null);
             }}
-            className="mt-6 w-full rounded-sm bg-[#B79074] py-2 text-base font-bold text-white"
+            className="mt-3 w-full rounded-xl bg-[#B79074] py-3 text-base font-bold text-white shadow-sm transition hover:bg-[#a6805f]"
           >
             {showForm ? `${primaryActionLabel}を閉じる` : primaryActionLabel}
           </button>
-
-          {showForm && (
-            <div className="rounded-b-md border-x-[3px] border-b-[3px] border-[#b79074] bg-white p-4">
-              {activeTab === "child" ? (
-                <form onSubmit={handleChildSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-4">
-                  <div>
-                    <h2 className="text-lg font-bold text-[#5C3A2E]">新しい園児を追加</h2>
-                    <p className="mt-1 text-sm text-[#6b5a4e]">
-                      まず園児名と月齢を登録します。注意する食材は登録後に追加できます。
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-	                    <label className="text-base font-medium text-[#2f2a27]">
-	                      園児名
-	                      <SuggestionInput
-	                        value={childName}
-	                        onChangeValue={setChildName}
-	                        options={childOptions}
-	                        className="mt-1 h-11 w-full rounded border-[3px] border-[#7f7f7f] bg-transparent px-2"
-	                      />
-	                    </label>
-                    <label className="text-base font-medium text-[#2f2a27]">
-                      月齢
-                      <input
-                        type="number"
-                        min={0}
-                        value={ageMonth}
-                        onChange={(e) => setAgeMonth(e.target.value)}
-                        className="mt-1 h-11 w-full rounded border-[3px] border-[#7f7f7f] bg-transparent px-2"
-                      />
-                    </label>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        resetForms();
-                        setShowForm(false);
-                      }}
-                      className="h-12 rounded border-[3px] border-[#B79074] bg-[#FFFDF8] text-base font-bold text-[#B79074]"
-                    >
-                      キャンセル
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={submitLoading}
-                      className="h-12 rounded bg-[#B79074] text-base font-bold text-white disabled:opacity-70"
-                    >
-                      {submitLoading ? "登録中" : "登録"}
-                    </button>
-                  </div>
-                </form>
-              ) : activeTab === "cook" ? (
-                <form onSubmit={handleCookSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-4">
-	                  <label className="block text-base font-medium text-[#2f2a27]">
-	                    食材名
-	                    <SuggestionInput
-	                      value={cookFoodName}
-	                      onChangeValue={setCookFoodName}
-	                      options={cookFoodOptions}
-	                      className="mt-1 h-11 w-full rounded border-[3px] border-[#7f7f7f] bg-transparent px-2"
-	                    />
-	                  </label>
-
-                  <div className="space-y-2">
-                    <p className="text-base font-medium text-[#2f2a27]">調理方法</p>
-                    {[
-                      { key: "phase1", label: "離乳初期" },
-                      { key: "phase2", label: "離乳中期" },
-                      { key: "phase3", label: "離乳後期" },
-                      { key: "phase4", label: "完了期" },
-                      { key: "phase5", label: "幼児期" },
-                    ].map((row) => (
-                      <div
-                        key={row.key}
-                        className="grid grid-cols-[5.6rem_1fr] items-center gap-2"
-                      >
-                        <div className="text-base font-medium text-[#2f2a27]">{row.label}</div>
-                        <input
-                          type="text"
-                          value={cookDrafts[row.key as keyof CookDrafts]}
-                          onChange={(e) =>
-                            setCookDrafts((prev) => ({
-                              ...prev,
-                              [row.key]: e.target.value,
-                            }))
-                          }
-                          className="h-11 w-full rounded border-[3px] border-[#7f7f7f] bg-transparent px-2"
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        resetForms();
-                        setShowForm(false);
-                      }}
-                      className="h-12 rounded border-[3px] border-[#B79074] bg-[#FFFDF8] text-base font-bold text-[#B79074]"
-                    >
-                      キャンセル
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={submitLoading}
-                      className="h-12 rounded bg-[#B79074] text-base font-bold text-white disabled:opacity-70"
-                    >
-                      {submitLoading ? "登録中" : "登録"}
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <form onSubmit={handleAccidentSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-4">
-	                  <label className="block text-base font-medium text-[#2f2a27]">
-	                    園児名
-	                    <SuggestionInput
-	                      value={accidentChildName}
-	                      onChangeValue={setAccidentChildName}
-	                      options={childOptions}
-	                      className="mt-1 h-11 w-full rounded border-[3px] border-[#7f7f7f] bg-transparent px-2"
-	                    />
-	                  </label>
-
-	                  <label className="block text-base font-medium text-[#2f2a27]">
-	                    食材名 (選択)
-	                    <SuggestionInput
-	                      value={accidentFood}
-	                      onChangeValue={setAccidentFood}
-	                      options={cookFoodOptions}
-	                      className="mt-1 h-11 w-full rounded border-[3px] border-[#7f7f7f] bg-transparent px-2"
-	                    />
-	                  </label>
-
-                  <label className="block text-base font-medium text-[#2f2a27]">
-                    ヒヤリハット内容
-                    <textarea
-                      value={accidentDetail}
-                      onChange={(e) => setAccidentDetail(e.target.value)}
-                      rows={4}
-                      className="mt-1 w-full rounded border-[3px] border-[#7f7f7f] bg-transparent p-2"
-                    />
-                  </label>
-
-                  <label className="inline-flex items-center gap-2 text-sm text-[#2f2a27]">
-                    <input
-                      type="checkbox"
-                      checked={accidentPublic}
-                      onChange={(e) => setAccidentPublic(e.target.checked)}
-                      className="h-4 w-4"
-                    />
-                    公開する
-                  </label>
-
-                  <div className="grid grid-cols-2 gap-4 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        resetForms();
-                        setShowForm(false);
-                      }}
-                      className="h-12 rounded border-[3px] border-[#B79074] bg-[#FFFDF8] text-base font-bold text-[#B79074]"
-                    >
-                      キャンセル
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={submitLoading}
-                      className="h-12 rounded bg-[#B79074] text-base font-bold text-white disabled:opacity-70"
-                    >
-                      {submitLoading ? "登録中" : editingAccidentId != null ? "更新" : "登録"}
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {formMsg && <p className="mt-3 text-sm text-[#6b5a4e]">{formMsg}</p>}
-            </div>
-          )}
-
-          <section className="mt-5 space-y-3">
-            {listLoading && <p className="text-sm text-[#6b5a4e]">読み込み中...</p>}
-
-            {!listLoading &&
-              (activeTab === "hiyari" ? filteredAccidents.length === 0 : namesForTab.length === 0) && (
-              <p className="rounded-md bg-[#F3F3F3] p-4 text-sm text-[#6b5a4e]">
-                表示できるデータがありません。
-              </p>
-            )}
-
-            {!listLoading && activeTab !== "hiyari" &&
-              namesForTab.map((name) =>
-                activeTab === "child"
-                  ? renderChildPanel(name)
-                  : activeTab === "cook"
-                    ? renderCookPanel(name)
-                    : renderMealPanel(name, "hiyari")
-              )}
-
-            {!listLoading && activeTab === "hiyari" && (
-              <div className="space-y-3">
-                {filteredAccidents.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`rounded-md p-4 ${
-                      item.public ? "bg-[#F2E5C8]" : "bg-[#F7F7F7]"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="w-full">
-                        {editingAccidentId === item.id ? (
-                          <form onSubmit={handleInlineAccidentSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-3">
-	                            <label className="block text-sm font-medium text-[#2f2a27]">
-	                              園児名
-	                              <SuggestionInput
-	                                value={accidentChildName}
-	                                onChangeValue={setAccidentChildName}
-	                                options={childOptions}
-	                                className="mt-1 h-10 w-full rounded border-[2px] border-[#7f7f7f] bg-white px-2"
-	                              />
-	                            </label>
-	                            <label className="block text-sm font-medium text-[#2f2a27]">
-	                              食材名
-	                              <SuggestionInput
-	                                value={accidentFood}
-	                                onChangeValue={setAccidentFood}
-	                                options={cookFoodOptions}
-	                                className="mt-1 h-10 w-full rounded border-[2px] border-[#7f7f7f] bg-white px-2"
-	                              />
-	                            </label>
-                            <label className="block text-sm font-medium text-[#2f2a27]">
-                              ヒヤリハット内容
-                              <textarea
-                                value={accidentDetail}
-                                onChange={(e) => setAccidentDetail(e.target.value)}
-                                rows={3}
-                                className="mt-1 w-full rounded border-[2px] border-[#7f7f7f] bg-white p-2"
-                              />
-                            </label>
-                            <label className="inline-flex items-center gap-2 text-sm text-[#2f2a27]">
-                              <input
-                                type="checkbox"
-                                checked={accidentPublic}
-                                onChange={(e) => setAccidentPublic(e.target.checked)}
-                                className="h-4 w-4"
-                              />
-                              公開する
-                            </label>
-                            <div className="grid grid-cols-2 gap-3">
-                              <button
-                                type="button"
-                                onClick={cancelInlineAccidentEdit}
-                                className="h-10 rounded border-[2px] border-[#B79074] bg-[#FFFDF8] text-sm font-bold text-[#B79074]"
-                              >
-                                キャンセル
-                              </button>
-                              <button
-                                type="submit"
-                                disabled={submitLoading}
-                                className="h-10 rounded bg-[#B79074] text-sm font-bold text-white disabled:opacity-70"
-                              >
-                                {submitLoading ? "登録中" : "保存"}
-                              </button>
-                            </div>
-                          </form>
-                        ) : (
-                          <>
-                            <p className="text-base font-bold text-[#2f2a27]">{item.food_name}</p>
-                            <p className="mt-1 text-sm text-[#2f2a27]">{item.accident_content}</p>
-                            <p className="mt-1 text-xs text-[#6b5a4e]">
-                              {item.child_name} / {formatDateTime(item.created_at)}
-                            </p>
-                          </>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => startInlineAccidentEdit(item)}
-                        className="rounded p-1 text-[#2f2a27] hover:bg-[#e7ddd3]"
-                        aria-label={`${item.food_name}のヒヤリハットを編集`}
-                      >
-                        <Pencil size={18} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
         </div>
       </div>
 
-	    </main>
-	  );
-	}
+      <div
+        className="h-full overflow-y-auto overscroll-none"
+        style={{ paddingTop: headerHeight + 112 }}
+      >
+      <div className="mx-auto w-full max-w-4xl px-3 pb-8 sm:px-5">
+        <section className="space-y-3">
+          {listLoading && <p className="text-sm text-[#6b5a4e]">読み込み中...</p>}
+
+          {!listLoading &&
+            (activeTab === "hiyari" ? filteredAccidents.length === 0 : namesForTab.length === 0) && (
+            <p className="rounded-md bg-[#F3F3F3] p-4 text-sm text-[#6b5a4e]">
+              表示できるデータがありません。
+            </p>
+          )}
+
+          {!listLoading && activeTab !== "hiyari" &&
+            namesForTab.map((name) =>
+              activeTab === "child"
+                ? renderChildPanel(name)
+                : activeTab === "cook"
+                  ? renderCookPanel(name)
+                  : renderMealPanel(name, "hiyari")
+            )}
+
+          {!listLoading && activeTab === "hiyari" && (
+            <div className="space-y-3">
+              {filteredAccidents.map((item) => (
+                <div
+                  key={item.id}
+                  className={`rounded-md p-4 ${
+                    item.public ? "bg-[#F2E5C8]" : "bg-[#F7F7F7]"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="w-full">
+                      <p className="text-base font-bold text-[#2f2a27]">{item.food_name}</p>
+                      <p className="mt-1 text-sm text-[#2f2a27]">{item.accident_content}</p>
+                      <p className="mt-1 text-xs text-[#6b5a4e]">
+                        {item.child_name} / {formatDateTime(item.created_at)}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => startInlineAccidentEdit(item)}
+                      className="rounded p-1 text-[#2f2a27] hover:bg-[#e7ddd3]"
+                      aria-label={`${item.food_name}のヒヤリハットを編集`}
+                    >
+                      <Pencil size={18} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+      </div>
+
+      {showForm && (
+        <EditModal title={primaryActionLabel} onClose={closeAddForm}>
+          {activeTab === "child" ? (
+            <form onSubmit={handleChildSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-4">
+              <p className="text-sm text-[#6b5a4e]">
+                まず園児名を登録します。注意する食材は登録後に追加できます。
+              </p>
+              <label className="block text-sm font-medium text-[#2f2a27]">
+                園児名
+                <SuggestionInput
+                  value={childName}
+                  onChangeValue={setChildName}
+                  options={childOptions}
+                  className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-sm"
+                />
+              </label>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closeAddForm}
+                  className="h-11 rounded-lg border border-[#B79074] bg-[#FFFDF8] text-sm font-bold text-[#B79074]"
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitLoading}
+                  className="h-11 rounded-lg bg-[#B79074] text-sm font-bold text-white shadow-sm disabled:opacity-70"
+                >
+                  {submitLoading ? "登録中" : "登録"}
+                </button>
+              </div>
+            </form>
+          ) : activeTab === "cook" ? (
+            <form onSubmit={handleCookSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-4">
+              <label className="block text-sm font-medium text-[#2f2a27]">
+                食材名
+                <SuggestionInput
+                  value={cookFoodName}
+                  onChangeValue={setCookFoodName}
+                  options={cookFoodOptions}
+                  className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-sm"
+                />
+              </label>
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-[#2f2a27]">調理方法</p>
+                {[
+                  { key: "phase1", label: "離乳初期" },
+                  { key: "phase2", label: "離乳中期" },
+                  { key: "phase3", label: "離乳後期" },
+                  { key: "phase4", label: "完了期" },
+                  { key: "phase5", label: "幼児期" },
+                ].map((row) => (
+                  <div
+                    key={row.key}
+                    className="grid grid-cols-[4rem_1fr] items-center gap-2"
+                  >
+                    <div className="text-sm font-medium text-[#2f2a27]">{row.label}</div>
+                    <input
+                      type="text"
+                      value={cookDrafts[row.key as keyof CookDrafts]}
+                      onChange={(e) =>
+                        setCookDrafts((prev) => ({
+                          ...prev,
+                          [row.key]: e.target.value,
+                        }))
+                      }
+                      className="h-9 w-full rounded-lg border border-[#B7A99A] bg-white px-2 text-sm"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closeAddForm}
+                  className="h-11 rounded-lg border border-[#B79074] bg-[#FFFDF8] text-sm font-bold text-[#B79074]"
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitLoading}
+                  className="h-11 rounded-lg bg-[#B79074] text-sm font-bold text-white shadow-sm disabled:opacity-70"
+                >
+                  {submitLoading ? "登録中" : "登録"}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleAccidentSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-4">
+              <label className="block text-sm font-medium text-[#2f2a27]">
+                園児名
+                <SuggestionInput
+                  value={accidentChildName}
+                  onChangeValue={setAccidentChildName}
+                  options={childOptions}
+                  className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-sm"
+                />
+              </label>
+
+              <label className="block text-sm font-medium text-[#2f2a27]">
+                食材名 (選択)
+                <SuggestionInput
+                  value={accidentFood}
+                  onChangeValue={setAccidentFood}
+                  options={cookFoodOptions}
+                  className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-sm"
+                />
+              </label>
+
+              <label className="block text-sm font-medium text-[#2f2a27]">
+                ヒヤリハット内容
+                <textarea
+                  value={accidentDetail}
+                  onChange={(e) => setAccidentDetail(e.target.value)}
+                  rows={4}
+                  className="mt-1 w-full rounded-lg border border-[#B7A99A] bg-white p-2 text-sm"
+                />
+              </label>
+
+              <label className="inline-flex items-center gap-2 text-sm text-[#2f2a27]">
+                <input
+                  type="checkbox"
+                  checked={accidentPublic}
+                  onChange={(e) => setAccidentPublic(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                公開する
+              </label>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closeAddForm}
+                  className="h-11 rounded-lg border border-[#B79074] bg-[#FFFDF8] text-sm font-bold text-[#B79074]"
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitLoading}
+                  className="h-11 rounded-lg bg-[#B79074] text-sm font-bold text-white shadow-sm disabled:opacity-70"
+                >
+                  {submitLoading ? "登録中" : editingAccidentId != null ? "更新" : "登録"}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {formMsg && <p className="mt-3 text-sm text-[#6b5a4e]">{formMsg}</p>}
+        </EditModal>
+      )}
+
+      {foodEditTargetName && (
+        <EditModal title={`${foodEditTargetName}の情報を編集`} onClose={closeInlineEditor}>
+          {showFoodForm ? (
+            <form onSubmit={handleFoodFormSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-4">
+              <h4 className="text-sm font-bold text-[#5C3A2E]">
+                {editingAnswerId ? "注意する食材を編集" : "注意する食材を追加"}
+              </h4>
+
+              <div className="grid grid-cols-[1fr_auto] items-end gap-3">
+                <label className="text-sm font-medium text-[#2f2a27]">
+                  食材名 (選択)
+                  <SuggestionInput
+                    value={noEat}
+                    onChangeValue={setNoEat}
+                    options={cookFoodOptions}
+                    className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-sm"
+                  />
+                </label>
+                <label className="inline-flex h-10 items-center gap-2 text-sm font-medium text-[#2f2a27]">
+                  <input
+                    type="checkbox"
+                    checked={isNoEatChecked}
+                    onChange={(e) => setIsNoEatChecked(e.target.checked)}
+                    className="h-4 w-4"
+                  />
+                  食べられない
+                </label>
+              </div>
+
+              <label className="block text-sm font-medium text-[#2f2a27]">
+                具体的な内容 (注意事項等)
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  rows={4}
+                  className="mt-1 w-full rounded-lg border border-[#B7A99A] bg-white p-2 text-sm"
+                />
+              </label>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={backToFoodList}
+                  className="h-11 rounded-lg border border-[#B79074] bg-[#FFFDF8] text-sm font-bold text-[#B79074]"
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitLoading}
+                  className="h-11 rounded-lg bg-[#B79074] text-sm font-bold text-white shadow-sm disabled:opacity-70"
+                >
+                  {submitLoading ? "登録中" : editingAnswerId ? "食材情報を更新" : "食材を追加"}
+                </button>
+              </div>
+              {formMsg && <p className="text-sm text-[#6b5a4e]">{formMsg}</p>}
+            </form>
+          ) : (
+            <form onSubmit={handleChildNameSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-4">
+              <h4 className="text-sm font-bold text-[#5C3A2E]">基本情報</h4>
+              <label className="block text-sm font-medium text-[#2f2a27]">
+                園児名
+                <SuggestionInput
+                  value={childName}
+                  onChangeValue={setChildName}
+                  options={childOptions}
+                  className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-sm"
+                />
+              </label>
+
+              <div className="border-t border-[#E6D7C8] pt-4">
+                <h4 className="text-sm font-bold text-[#5C3A2E]">登録済みの食材</h4>
+                {(() => {
+                  const currentFoods = answerItems.filter(
+                    (item) => item.child_name === foodEditTargetName && item.no_eat.trim().length > 0
+                  );
+                  if (currentFoods.length === 0) {
+                    return <p className="mt-2 text-sm text-[#6b5a4e]">未登録です。</p>;
+                  }
+                  return (
+                    <div className="mt-2 space-y-2">
+                      {currentFoods.map((item) => (
+                        <div
+                          key={item.id}
+                          className={`flex items-center gap-2 rounded-lg p-3 ${
+                            item.can_eat ? "bg-[#FFF2D2]" : "bg-[#f3e9e9]"
+                          }`}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-[#2f2a27]">{item.no_eat}</p>
+                            {item.note && <p className="text-sm text-[#2f2a27]">{item.note}</p>}
+                            {!item.can_eat && (
+                              <p className="text-sm font-medium text-[#dd3019]">食べられない</p>
+                            )}
+                          </div>
+                          <div className="flex shrink-0 items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleStartEditFood(item)}
+                              className="rounded-lg p-1.5 text-[#765B49] hover:bg-[#F0E4D8]"
+                              aria-label={`${item.no_eat}を編集`}
+                            >
+                              <Pencil size={15} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteFood(item)}
+                              className="rounded-lg p-1.5 text-[#d64a3a] hover:bg-[#f7e6e3]"
+                              aria-label={`${item.no_eat}を削除`}
+                            >
+                              <X size={15} strokeWidth={2.5} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+                <button
+                  type="button"
+                  onClick={startAddFood}
+                  className="mt-3 w-full rounded-lg border border-[#B79074] bg-[#FFFDF8] py-2 text-sm font-bold text-[#765B49] hover:bg-[#F0E4D8]"
+                >
+                  + 注意する食材を追加
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closeInlineEditor}
+                  className="h-11 rounded-lg border border-[#B79074] bg-[#FFFDF8] text-sm font-bold text-[#B79074]"
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitLoading}
+                  className="h-11 rounded-lg bg-[#B79074] text-sm font-bold text-white shadow-sm disabled:opacity-70"
+                >
+                  {submitLoading ? "登録中" : "保存"}
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleDeleteChildPanel(foodEditTargetName)}
+                disabled={submitLoading}
+                className="h-11 w-full rounded-lg border border-[#d64a3a] bg-white text-sm font-bold text-[#d64a3a] disabled:opacity-70"
+              >
+                この園児を削除
+              </button>
+              {formMsg && <p className="text-sm text-[#6b5a4e]">{formMsg}</p>}
+            </form>
+          )}
+        </EditModal>
+      )}
+
+      {cookEditTargetName && (
+        <EditModal title={`${cookEditTargetName}の調理方法を編集`} onClose={cancelInlineCookEdit}>
+          <form onSubmit={handleInlineCookSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-3">
+            {[
+              { key: "phase1", label: "離乳初期" },
+              { key: "phase2", label: "離乳中期" },
+              { key: "phase3", label: "離乳後期" },
+              { key: "phase4", label: "完了期" },
+              { key: "phase5", label: "幼児期" },
+            ].map((phase) => (
+              <div key={phase.key} className="grid grid-cols-[4rem_1fr] items-center gap-2">
+                <div className="text-sm font-bold text-[#5C3A2E]">{phase.label}</div>
+                <input
+                  type="text"
+                  value={cookDrafts[phase.key as keyof CookDrafts]}
+                  onChange={(e) =>
+                    setCookDrafts((prev) => ({
+                      ...prev,
+                      [phase.key]: e.target.value,
+                    }))
+                  }
+                  className="h-9 w-full rounded border border-[#B7A99A] bg-white px-2 text-sm"
+                />
+              </div>
+            ))}
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <button
+                type="button"
+                onClick={cancelInlineCookEdit}
+                className="h-11 rounded border-[3px] border-[#B79074] bg-[#FFFDF8] text-base font-bold text-[#B79074]"
+              >
+                キャンセル
+              </button>
+              <button
+                type="submit"
+                disabled={submitLoading}
+                className="h-11 rounded bg-[#B79074] text-base font-bold text-white disabled:opacity-70"
+              >
+                {submitLoading ? "登録中" : "保存"}
+              </button>
+            </div>
+            {formMsg && <p className="text-sm text-[#6b5a4e]">{formMsg}</p>}
+          </form>
+        </EditModal>
+      )}
+
+      {editingAccidentId != null && (
+        <EditModal title="ヒヤリハットを編集" onClose={cancelInlineAccidentEdit}>
+          <form onSubmit={handleInlineAccidentSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-3">
+            <label className="block text-sm font-medium text-[#2f2a27]">
+              園児名
+              <SuggestionInput
+                value={accidentChildName}
+                onChangeValue={setAccidentChildName}
+                options={childOptions}
+                className="mt-1 h-10 w-full rounded border-[2px] border-[#7f7f7f] bg-white px-2"
+              />
+            </label>
+            <label className="block text-sm font-medium text-[#2f2a27]">
+              食材名
+              <SuggestionInput
+                value={accidentFood}
+                onChangeValue={setAccidentFood}
+                options={cookFoodOptions}
+                className="mt-1 h-10 w-full rounded border-[2px] border-[#7f7f7f] bg-white px-2"
+              />
+            </label>
+            <label className="block text-sm font-medium text-[#2f2a27]">
+              ヒヤリハット内容
+              <textarea
+                value={accidentDetail}
+                onChange={(e) => setAccidentDetail(e.target.value)}
+                rows={3}
+                className="mt-1 w-full rounded border-[2px] border-[#7f7f7f] bg-white p-2"
+              />
+            </label>
+            <label className="inline-flex items-center gap-2 text-sm text-[#2f2a27]">
+              <input
+                type="checkbox"
+                checked={accidentPublic}
+                onChange={(e) => setAccidentPublic(e.target.checked)}
+                className="h-4 w-4"
+              />
+              公開する
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={cancelInlineAccidentEdit}
+                className="h-10 rounded border-[2px] border-[#B79074] bg-[#FFFDF8] text-sm font-bold text-[#B79074]"
+              >
+                キャンセル
+              </button>
+              <button
+                type="submit"
+                disabled={submitLoading}
+                className="h-10 rounded bg-[#B79074] text-sm font-bold text-white disabled:opacity-70"
+              >
+                {submitLoading ? "登録中" : "保存"}
+              </button>
+            </div>
+            {formMsg && <p className="text-sm text-[#6b5a4e]">{formMsg}</p>}
+          </form>
+        </EditModal>
+      )}
+    </main>
+  );
+}
 
 
 
