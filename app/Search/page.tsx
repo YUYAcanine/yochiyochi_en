@@ -29,6 +29,12 @@ type ChildFoodItem = {
   note: string | null;
 };
 
+type AccidentFoodItem = {
+  child_name: string;
+  food_name: string;
+  content: string;
+};
+
 export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<FoodItem[]>([]);
@@ -39,6 +45,7 @@ export default function SearchPage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [memberId, setMemberId] = useState<string | null>(null);
   const [enjiFoodItems, setEnjiFoodItems] = useState<ChildFoodItem[]>([]);
+  const [accidentFoodItems, setAccidentFoodItems] = useState<AccidentFoodItem[]>([]);
 
   const { menuMap, foodIdMap, canonicalNameMap } = useMenuData();
   const { accidentInfo, showAccidentInfo, fetchByFoodId, reset } = useAccidentInfo();
@@ -96,43 +103,65 @@ export default function SearchPage() {
 
       if (childIds.length === 0) {
         if (!cancelled) setEnjiFoodItems([]);
-        return;
+      } else {
+        const { data: restrictionRows, error: restrictionError } = await supabase
+          .from("child_food_restrictions")
+          .select("child_id, cannot_eat, note, foods(name)")
+          .in("child_id", childIds)
+          .returns<
+            Array<{
+              child_id: string;
+              cannot_eat: boolean;
+              note: string | null;
+              foods: { name: string | null } | null;
+            }>
+          >();
+
+        if (!restrictionError && restrictionRows && !cancelled) {
+          const nextItems: ChildFoodItem[] = restrictionRows
+            .map((row): ChildFoodItem | null => {
+              const foodName = row.foods?.name?.trim() ?? "";
+              if (!foodName) return null;
+              return {
+                child_name: childNameMap.get(row.child_id) ?? "",
+                no_eat: foodName,
+                can_eat: !row.cannot_eat,
+                note: row.note ?? null,
+              };
+            })
+            .filter((item): item is ChildFoodItem => item !== null);
+
+          setEnjiFoodItems(nextItems);
+        }
       }
 
-      const { data: restrictionRows, error: restrictionError } = await supabase
-        .from("child_food_restrictions")
-        .select("child_id, cannot_eat, note, foods(name)")
-        .in("child_id", childIds)
-        .eq("cannot_eat", true)
+      const { data: accidentRows, error: accidentError } = await supabase
+        .from("accidents")
+        .select("child_id, content, foods(name)")
+        .eq("garden_id", gardenId)
         .returns<
           Array<{
-            child_id: string;
-            cannot_eat: boolean;
-            note: string | null;
+            child_id: string | null;
+            content: string | null;
             foods: { name: string | null } | null;
           }>
         >();
 
-      if (restrictionError || !restrictionRows) {
-        if (!cancelled) setEnjiFoodItems([]);
-        return;
-      }
+      if (!accidentError && accidentRows && !cancelled) {
+        const nextAccidents: AccidentFoodItem[] = accidentRows
+          .map((row): AccidentFoodItem | null => {
+            const foodName = row.foods?.name?.trim() ?? "";
+            const content = row.content?.trim() ?? "";
+            if (!foodName || !content) return null;
+            return {
+              child_name: row.child_id ? childNameMap.get(row.child_id) ?? "" : "",
+              food_name: foodName,
+              content,
+            };
+          })
+          .filter((item): item is AccidentFoodItem => item !== null);
 
-      const nextItems: ChildFoodItem[] = restrictionRows
-        .map((row): ChildFoodItem | null => {
-          const foodName = row.foods?.name?.trim() ?? "";
-          if (!foodName) return null;
-          return {
-            child_name: childNameMap.get(row.child_id) ?? "",
-            no_eat: foodName,
-            can_eat: !row.cannot_eat,
-            note: row.note ?? null,
-          };
-        })
-        .filter((item): item is ChildFoodItem => item !== null);
-
-      if (!cancelled) {
-        setEnjiFoodItems(nextItems);
+        setAccidentFoodItems(nextAccidents);
       }
     };
 
@@ -143,9 +172,8 @@ export default function SearchPage() {
   }, [memberId]);
 
   const childFoodMap = useMemo(() => {
-    const map = new Map<string, Array<{ name: string; note: string | null }>>();
+    const map = new Map<string, Array<{ name: string; note: string | null; canEat: boolean }>>();
     for (const child of enjiFoodItems) {
-      if (child.can_eat === true) continue;
       const items = (child.no_eat ?? "")
         .split(/[,\s/\u3001\u30fb\uFF0C\uFF0F]+/)
         .map((item) => canon(item))
@@ -153,12 +181,24 @@ export default function SearchPage() {
       const uniqueItems = Array.from(new Set(items));
       for (const item of uniqueItems) {
         const list = map.get(item) ?? [];
-        list.push({ name: child.child_name, note: child.note ?? null });
+        list.push({ name: child.child_name, note: child.note ?? null, canEat: child.can_eat === true });
         map.set(item, list);
       }
     }
     return map;
   }, [enjiFoodItems]);
+
+  const accidentFoodMap = useMemo(() => {
+    const map = new Map<string, Array<{ name: string; content: string }>>();
+    for (const item of accidentFoodItems) {
+      const key = canon(item.food_name);
+      if (!key) continue;
+      const list = map.get(key) ?? [];
+      list.push({ name: item.child_name, content: item.content });
+      map.set(key, list);
+    }
+    return map;
+  }, [accidentFoodItems]);
 
   const getChildEntries = useCallback(
     (raw?: string) => {
@@ -170,26 +210,55 @@ export default function SearchPage() {
     [childFoodMap]
   );
 
-  const formatChildNotes = useCallback((entries: Array<{ name: string; note: string | null }>) => {
-    const normalized = entries
-      .map((entry) => ({
-        name: (entry.name ?? "").trim(),
-        note: (entry.note ?? "").trim(),
-      }))
-      .filter((entry) => entry.name.length > 0);
+  const getAccidentEntries = useCallback(
+    (raw?: string) => {
+      const key = canon(raw);
+      if (!key) return null;
+      const list = accidentFoodMap.get(key);
+      return list && list.length > 0 ? list : null;
+    },
+    [accidentFoodMap]
+  );
 
-    const names = Array.from(new Set(normalized.map((entry) => entry.name))).join("、") || "未登録";
-    const notes = Array.from(
-      new Set(
-        normalized
-          .filter((entry) => entry.note.length > 0)
-          .map((entry) => entry.note)
-      )
-    );
+  const formatChildNotes = useCallback(
+    (
+      childEntries: Array<{ name: string; note: string | null; canEat: boolean }> | null,
+      accidentEntries: Array<{ name: string; content: string }> | null
+    ) => {
+      const parts: string[] = [];
 
-    const noteText = notes.length > 0 ? notes.join(" / ") : "なし";
-    return `園児名：${names}\n注意事項：${noteText}`;
-  }, []);
+      if (childEntries && childEntries.length > 0) {
+        const normalized = childEntries
+          .map((entry) => ({
+            name: (entry.name ?? "").trim(),
+            note: (entry.note ?? "").trim(),
+            canEat: entry.canEat,
+          }))
+          .filter((entry) => entry.name.length > 0);
+
+        const lines = normalized.map((entry) => {
+          const status = entry.canEat ? "食べられる" : "食べられない";
+          const noteText = entry.note ? `（${entry.note}）` : "";
+          return `・${entry.name}：${status}${noteText}`;
+        });
+
+        if (lines.length > 0) {
+          parts.push(`【注意する食材】\n${lines.join("\n")}`);
+        }
+      }
+
+      if (accidentEntries && accidentEntries.length > 0) {
+        const lines = accidentEntries.map((entry) => {
+          const name = entry.name?.trim();
+          return `・${name ? `${name}：` : ""}${entry.content}`;
+        });
+        parts.push(`【ヒヤリハット報告】\n${lines.join("\n")}`);
+      }
+
+      return parts.join("\n\n");
+    },
+    []
+  );
 
   const handleSearch = () => {
     if (!searchQuery.trim()) {
@@ -237,17 +306,19 @@ export default function SearchPage() {
 
       const val = food[phase]?.trim();
       const childEntries = getChildEntries(food.food_name);
-      const childText = childEntries ? formatChildNotes(childEntries) : "";
+      const accidentEntries = getAccidentEntries(food.food_name);
+      const hasFlag = Boolean(childEntries) || Boolean(accidentEntries);
+      const childText = hasFlag ? formatChildNotes(childEntries, accidentEntries) : "";
       const cookVariant: CookVariant = !val ? "none" : "ok";
 
       if (cookVariant === "none") {
-        if (childEntries) {
+        if (hasFlag) {
           return { variant: "child", cookVariant: "none", cookText: "", childText };
         }
         return { variant: "none", cookVariant: "none", cookText: "", childText: "" };
       }
 
-      if (childEntries) {
+      if (hasFlag) {
         return {
           variant: "ok_child",
           cookVariant,
@@ -258,7 +329,7 @@ export default function SearchPage() {
 
       return { variant: "ok", cookVariant, cookText: val ?? "", childText: "" };
     },
-    [phase, getChildEntries, formatChildNotes]
+    [phase, getChildEntries, getAccidentEntries, formatChildNotes]
   );
 
   const selected = selectedFood
@@ -279,13 +350,6 @@ export default function SearchPage() {
         heightClass="h-24"
         bgClass="bg-[#F0E4D8]"
         logoClassName="h-20 w-auto object-contain"
-        rightContent={
-          memberId ? (
-            <span className="text-sm font-semibold text-[#6B5A4E]">
-              {memberId}さんのページ
-            </span>
-          ) : null
-        }
       />
 
       <div className="flex-grow pt-24 px-4">
@@ -302,7 +366,7 @@ export default function SearchPage() {
               <div className="flex-1 relative">
 	                <input
 	                  type="text"
-	                  value={isClient ? searchQuery : ""}
+	                  value={searchQuery}
 	                  onFocus={() => setShowSuggestions(true)}
 	                  onBlur={() => setTimeout(() => setShowSuggestions(false), 80)}
 	                  onChange={(e) => {
@@ -312,12 +376,12 @@ export default function SearchPage() {
 	                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.nativeEvent.isComposing) {
-                      handleSearch();
+                      e.preventDefault();
+                      e.currentTarget.blur();
                     }
                   }}
                   placeholder="食材名を入力してください"
-                  disabled={!isClient}
-                  className="w-full px-4 py-3 pr-10 border border-[#D3C5B9] rounded-xl bg-white text-[#4D3F36] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#9c7b6c]"
+                  className="w-full px-4 py-3 pr-10 border border-[#D3C5B9] rounded-xl bg-white text-[#4D3F36] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-brand"
                 />
                 {searchQuery && (
                   <button
@@ -359,12 +423,7 @@ export default function SearchPage() {
               </div>
               <button
                 onClick={handleSearch}
-                disabled={!isClient}
-                className={`px-6 py-3 rounded-xl font-medium transition ${
-                  isClient
-                    ? "bg-[#9c7b6c] hover:bg-[#a88877] text-white"
-                    : "bg-[#9c7b6c] text-white opacity-50"
-                }`}
+                className="px-6 py-3 rounded-xl font-medium transition bg-brand hover:bg-brand-hover text-white"
                 aria-label="検索"
               >
                 <Search className="w-5 h-5" />
@@ -378,15 +437,22 @@ export default function SearchPage() {
                 <div>
                   <h2 className="text-base font-semibold text-[#3A2C25] mb-4">検索結果</h2>
                   <div className="space-y-2">
-                    {searchResults.map((food, index) => (
-                      <button
-                        key={`${food.food_name}-${index}`}
-                        onClick={() => handleSelectFood(food, "search_result")}
-                        className="w-full p-4 text-left bg-white border border-[#D3C5B9] rounded-xl hover:bg-[#F8E8E8] transition text-[#4D3F36]"
-                      >
-                        {food.food_name}
-                      </button>
-                    ))}
+                    {searchResults.map((food, index) => {
+                      const flagged = Boolean(getChildEntries(food.food_name)) || Boolean(getAccidentEntries(food.food_name));
+                      return (
+                        <button
+                          key={`${food.food_name}-${index}`}
+                          onClick={() => handleSelectFood(food, "search_result")}
+                          className={`w-full p-4 text-left rounded-xl transition text-[#4D3F36] ${
+                            flagged
+                              ? "bg-white border-2 border-red-500 hover:bg-red-50"
+                              : "bg-white border border-[#D3C5B9] hover:bg-[#F8E8E8]"
+                          }`}
+                        >
+                          {food.food_name}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ) : (

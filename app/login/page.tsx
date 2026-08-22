@@ -184,7 +184,7 @@ export default function LoginPage() {
                   name="memberId"
                   value={memberId}
                   onChange={(e) => setMemberId(e.target.value)}
-                  className="mt-2 w-full rounded-xl border border-[#D3C5B9] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#9c7b6c]"
+                  className="mt-2 w-full rounded-xl border border-[#D3C5B9] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
                   placeholder="例：A123456"
                   required
                 />
@@ -197,7 +197,7 @@ export default function LoginPage() {
                   name="passward"
                   value={passward}
                   onChange={(e) => setPassward(e.target.value)}
-                  className="mt-2 w-full rounded-xl border border-[#D3C5B9] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#9c7b6c]"
+                  className="mt-2 w-full rounded-xl border border-[#D3C5B9] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
                   placeholder="パスワード"
                   required
                 />
@@ -206,7 +206,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full rounded-xl bg-[#9c7b6c] text-white font-semibold py-3 transition hover:bg-[#a88877] disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full rounded-xl bg-brand text-white font-semibold py-3 transition hover:bg-brand-hover disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {isLoading && loadingAction === "login" ? "確認中..." : "ログイン"}
               </button>
@@ -237,7 +237,7 @@ export default function LoginPage() {
                   name="regMemberId"
                   value={regMemberId}
                   onChange={(e) => setRegMemberId(e.target.value)}
-                  className="mt-2 w-full rounded-xl border border-[#D3C5B9] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#9c7b6c]"
+                  className="mt-2 w-full rounded-xl border border-[#D3C5B9] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
                   placeholder="例：A123456"
                   required
                 />
@@ -250,7 +250,7 @@ export default function LoginPage() {
                   name="regPassword"
                   value={regPassword}
                   onChange={(e) => setRegPassword(e.target.value)}
-                  className="mt-2 w-full rounded-xl border border-[#D3C5B9] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#9c7b6c]"
+                  className="mt-2 w-full rounded-xl border border-[#D3C5B9] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
                   placeholder="8文字以上・2種類以上の文字種"
                   required
                 />
@@ -266,7 +266,7 @@ export default function LoginPage() {
                   name="regPasswordConfirm"
                   value={regPasswordConfirm}
                   onChange={(e) => setRegPasswordConfirm(e.target.value)}
-                  className="mt-2 w-full rounded-xl border border-[#D3C5B9] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#9c7b6c]"
+                  className="mt-2 w-full rounded-xl border border-[#D3C5B9] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
                   placeholder="もう一度同じパスワードを入力"
                   required
                 />
@@ -275,7 +275,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full rounded-xl bg-[#9c7b6c] text-white font-semibold py-3 transition hover:bg-[#a88877] disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full rounded-xl bg-brand text-white font-semibold py-3 transition hover:bg-brand-hover disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {isLoading && loadingAction === "register" ? "登録中..." : "新規登録"}
               </button>

@@ -3,6 +3,7 @@ import "./globals.css";
 import { ChecklistProvider } from "@/components/checklist";
 import Script from "next/script";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import ScrollToTop from "@/components/ScrollToTop";
 import { Suspense } from "react";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -31,6 +32,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         )}
       </head>
       <body>
+        <Suspense fallback={null}>
+          <ScrollToTop />
+        </Suspense>
         <ChecklistProvider>{children}</ChecklistProvider>
         {gaId && (
           <Suspense fallback={null}>

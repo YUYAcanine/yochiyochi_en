@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronUp, Pencil, Search, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, Pencil, Plus, Search, X } from "lucide-react";
 import { useMenuData } from "@/hooks/useMenuData";
 import { canon } from "@/lib/textNormalize";
 import Ribbon from "@/components/Ribbon";
@@ -57,6 +57,7 @@ type SuggestionInputProps = {
   placeholder?: string;
   type?: "text" | "number";
   min?: number;
+  unregisteredMessage?: string;
 };
 
 const formatDateTime = (value: string) => {
@@ -79,6 +80,7 @@ function SuggestionInput({
   placeholder,
   type = "text",
   min,
+  unregisteredMessage,
 }: SuggestionInputProps) {
   const [open, setOpen] = useState(false);
 
@@ -103,6 +105,15 @@ function SuggestionInput({
       .slice(0, 8);
   }, [value, options, type]);
 
+  const showDropdown = type === "text" && open && value.trim() && suggestions.length > 0;
+
+  const isUnregistered = useMemo(() => {
+    if (!unregisteredMessage) return false;
+    const q = canon(value.trim());
+    if (!q) return false;
+    return !options.some((item) => canon(item.trim()) === q);
+  }, [value, options, unregisteredMessage]);
+
   return (
     <div className={`relative ${wrapperClassName ?? ""}`}>
       <input
@@ -116,7 +127,7 @@ function SuggestionInput({
         placeholder={placeholder}
         className={className}
       />
-      {type === "text" && open && value.trim() && suggestions.length > 0 && (
+      {showDropdown && (
         <div className="absolute left-0 right-0 top-[calc(100%+0.3rem)] z-20 max-h-56 overflow-y-auto rounded-lg border border-[#D3C5B9] bg-white shadow-lg">
           {suggestions.map((item) => (
             <button
@@ -133,6 +144,9 @@ function SuggestionInput({
             </button>
           ))}
         </div>
+      )}
+      {!showDropdown && isUnregistered && (
+        <p className="mt-1 text-xs text-red-600">{unregisteredMessage}</p>
       )}
     </div>
   );
@@ -571,7 +585,7 @@ export default function Page4() {
     setEditingAnswerId(null);
     setNoEat("");
     setNote("");
-    setIsNoEatChecked(false);
+    setIsNoEatChecked(true);
     setShowFoodForm(true);
     setFormMsg(null);
   };
@@ -783,6 +797,32 @@ export default function Page4() {
     setFormMsg(null);
   };
 
+  const handleDeleteAccident = async (id: string) => {
+    if (!memberId) return;
+    if (!window.confirm("このヒヤリハットを削除しますか？")) return;
+
+    setFormMsg(null);
+    setSubmitLoading(true);
+    try {
+      const res = await authedFetch("/api/accidents", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) throw new Error("delete failed");
+
+      if (editingAccidentId === id) {
+        cancelInlineAccidentEdit();
+      }
+      setFormMsg("削除しました。");
+      setReloadTick((prev) => prev + 1);
+    } catch {
+      setFormMsg("削除に失敗しました。");
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
   const handleInlineAccidentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormMsg(null);
@@ -859,8 +899,16 @@ export default function Page4() {
   };
 
   const preventImeEnterSubmit = (e: React.KeyboardEvent<HTMLFormElement>) => {
-    if (e.key === "Enter" && e.nativeEvent.isComposing) {
+    if (e.key !== "Enter") return;
+    if (e.nativeEvent.isComposing) {
       e.preventDefault();
+      return;
+    }
+    // input欄でのEnterは登録扱いにせず、キーボードを閉じるだけにする
+    const target = e.target as HTMLElement;
+    if (target.tagName === "INPUT") {
+      e.preventDefault();
+      target.blur();
     }
   };
 
@@ -868,7 +916,6 @@ export default function Page4() {
     const noEatItems = answerItems.filter(
       (item) => item.child_name === name && item.no_eat.trim().length > 0
     );
-    const hiyariItems = accidentItems.filter((item) => item.child_name === name);
 
     return (
       <div key={name} className="flex items-start gap-2">
@@ -893,7 +940,7 @@ export default function Page4() {
                   e.stopPropagation();
                   toggleExpanded(name);
                 }}
-                className="rounded p-1 text-[#2f2a27]"
+                className="rounded p-1 text-[#8A776A]"
                 aria-label={`${name}を${expandedNames[name] ? "収納" : "展開"}`}
               >
                 {expandedNames[name] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -904,7 +951,7 @@ export default function Page4() {
                   e.stopPropagation();
                   openEditorForName(name);
                 }}
-                className="rounded p-1 text-[#2f2a27] hover:bg-[#e7ddd3]"
+                className="rounded p-1 text-brand hover:bg-[#F0E4D8]"
                 aria-label={`${name}を編集`}
               >
                 <Pencil size={18} />
@@ -924,14 +971,14 @@ export default function Page4() {
               <div className="space-y-2">
                 {noEatItems.map((item) => (
                   <div key={item.id} className="flex items-center gap-2">
-                    <div className={`w-full rounded-md p-3 ${item.can_eat ? "bg-[#FFF2D2]" : "bg-[#f3e9e9]"}`}>
+                    <div className="w-full rounded-md bg-[#f3e9e9] p-3">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-sm font-medium text-[#2f2a27]">{item.no_eat}</p>
-                          {item.note && <p className="text-sm text-[#2f2a27]">{item.note}</p>}
+                          {item.note && <p className="text-sm text-[#6b5a4e]">{item.note}</p>}
                         </div>
                         {!item.can_eat && (
-                          <p className="text-sm font-medium text-[#dd3019]">食べられない</p>
+                          <p className="shrink-0 text-sm font-medium text-red-600">食べられない</p>
                         )}
                       </div>
                     </div>
@@ -940,20 +987,6 @@ export default function Page4() {
               </div>
             ) : (
               <p className="text-sm text-[#6b5a4e]">未登録です。</p>
-            )}
-
-            {hiyariItems.length > 0 && (
-              <div>
-                <h3 className="mb-2 text-base font-bold text-[#2f2a27]">ヒヤリハット</h3>
-                <div className="space-y-2">
-                  {hiyariItems.slice(0, 3).map((item) => (
-                    <div key={item.id} className="rounded-md border border-[#E6D7C8] bg-[#F9F4E8] p-3">
-                      <p className="text-base font-bold text-[#2f2a27]">{item.food_name}</p>
-                      {item.accident_content && <p className="text-sm text-[#2f2a27]">{item.accident_content}</p>}
-                    </div>
-                  ))}
-                </div>
-              </div>
             )}
             </div>
           )}
@@ -1070,7 +1103,7 @@ export default function Page4() {
                   e.stopPropagation();
                   toggleExpanded(foodName);
                 }}
-                className="rounded p-1 text-[#2f2a27]"
+                className="rounded p-1 text-[#8A776A]"
                 aria-label={`${foodName}を${expandedNames[foodName] ? "収納" : "展開"}`}
               >
                 {expandedNames[foodName] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -1081,7 +1114,7 @@ export default function Page4() {
                   e.stopPropagation();
                   startInlineCookEdit(foodName);
                 }}
-                className="rounded p-1 text-[#2f2a27] hover:bg-[#e7ddd3]"
+                className="rounded p-1 text-brand hover:bg-[#F0E4D8]"
                 aria-label={`${foodName}を編集`}
               >
                 <Pencil size={18} />
@@ -1111,7 +1144,7 @@ export default function Page4() {
   };
 
   return (
-    <main className="h-screen overflow-hidden bg-[#FFFDF8] text-[#2f2a27]">
+    <main className="h-[100dvh] overflow-hidden bg-[#FFFDF8] text-[#2f2a27]">
       <Ribbon
         href="/"
         logoSrc="/yoyochi.jpg"
@@ -1119,46 +1152,49 @@ export default function Page4() {
         heightClass="h-24"
         bgClass="bg-[#F0E4D8]"
         logoClassName="h-20 w-auto object-contain"
-        rightContent={
-          memberId ? (
-            <p className="text-sm font-semibold text-[#2f2a27]">{memberId}さんのページ</p>
-          ) : null
-        }
       />
 
       <div ref={headerRef} className="fixed inset-x-0 top-24 z-40 border-b border-[#E6D7C8] bg-[#FFFDF8] shadow-md">
         <div className="mx-auto w-full max-w-4xl px-3 pb-3 pt-3 sm:px-5">
-          <div className="grid grid-cols-3 gap-1 border-b-[6px] border-[#b79074]">
-            <button
-              type="button"
-              onClick={() => handleTabChange("cook")}
-              className={`rounded-t-md py-2 text-base font-bold ${
-                activeTab === "cook" ? "bg-[#B79074] text-white" : "bg-[#ece4dc] text-[#7d7570]"
-              }`}
-            >
-              調理方法
-            </button>
-            <button
-              type="button"
-              onClick={() => handleTabChange("child")}
-              className={`rounded-t-md py-2 text-base font-bold ${
-                activeTab === "child" ? "bg-[#B79074] text-white" : "bg-[#ece4dc] text-[#7d7570]"
-              }`}
-            >
-              園児情報
-            </button>
-            <button
-              type="button"
-              onClick={() => handleTabChange("hiyari")}
-              className={`rounded-t-md py-2 text-base font-bold ${
-                activeTab === "hiyari" ? "bg-[#B79074] text-white" : "bg-[#ece4dc] text-[#7d7570]"
-              }`}
-            >
-              ヒヤリハット
-            </button>
-          </div>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+            <div className="grid grid-cols-3 gap-1 rounded-full bg-[#ece4dc] p-1 md:w-fit md:shrink-0">
+              <button
+                type="button"
+                onClick={() => handleTabChange("cook")}
+                className={`min-h-11 rounded-full py-2 text-base font-bold transition-colors duration-200 md:px-4 ${
+                  activeTab === "cook"
+                    ? "bg-brand text-white shadow-sm"
+                    : "text-[#6b5a4e] hover:text-[#4d3f36]"
+                }`}
+              >
+                調理方法
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTabChange("child")}
+                className={`min-h-11 rounded-full py-2 text-base font-bold transition-colors duration-200 md:px-4 ${
+                  activeTab === "child"
+                    ? "bg-brand text-white shadow-sm"
+                    : "text-[#6b5a4e] hover:text-[#4d3f36]"
+                }`}
+              >
+                園児情報
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTabChange("hiyari")}
+                className={`min-h-11 rounded-full py-2 text-base font-bold transition-colors duration-200 md:px-4 ${
+                  activeTab === "hiyari"
+                    ? "bg-brand text-white shadow-sm"
+                    : "text-[#6b5a4e] hover:text-[#4d3f36]"
+                }`}
+              >
+                ヒヤリハット
+              </button>
+            </div>
 
-	          <div className="mt-3 flex gap-1">
+            <div className="flex flex-col gap-3 md:flex-1 md:flex-row md:items-center">
+	          <div className="flex flex-1 gap-1">
 	            <SuggestionInput
 	              value={searchText}
 	              onChangeValue={setSearchText}
@@ -1169,44 +1205,49 @@ export default function Page4() {
 	                  ? "食材名を入力してください"
 	                  : "園児名を入力してください"
 	              }
-	              className="h-12 w-full rounded-sm border-[3px] border-[#b79074] bg-[#FFFDF8] px-3 text-base outline-none placeholder:text-[#b7aea6]"
+	              className="h-12 w-full rounded-sm border-[3px] border-brand bg-[#FFFDF8] px-3 text-base outline-none placeholder:text-[#b7aea6]"
 	            />
             <button
               type="button"
-              className="flex h-12 w-12 items-center justify-center rounded-sm bg-[#B79074] text-white"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm bg-brand text-white"
               aria-label="検索"
             >
               <Search size={26} />
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              resetForms();
-              setChildFormMode("register");
-              setFoodEditTargetName(null);
-              setEditingAccidentId(null);
-              if (activeTab === "cook") {
-                const q = searchText.trim();
-                if (q) {
-                  loadCookDraftFromName(q);
-                }
-              } else if (activeTab === "hiyari") {
-                const q = searchText.trim();
-                if (q) {
-                  setAccidentFood(q);
-                }
-              }
-              setShowForm((prev) => !prev);
-              setFormMsg(null);
-            }}
-            className="mt-3 w-full rounded-xl bg-[#B79074] py-3 text-base font-bold text-white shadow-sm transition hover:bg-[#a6805f]"
-          >
-            {showForm ? `${primaryActionLabel}を閉じる` : primaryActionLabel}
-          </button>
+            </div>
+          </div>
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={() => {
+          resetForms();
+          setChildFormMode("register");
+          setFoodEditTargetName(null);
+          setEditingAccidentId(null);
+          if (activeTab === "cook") {
+            const q = searchText.trim();
+            if (q) {
+              loadCookDraftFromName(q);
+            }
+          } else if (activeTab === "hiyari") {
+            const q = searchText.trim();
+            if (q) {
+              setAccidentFood(q);
+            }
+          }
+          setShowForm(true);
+          setFormMsg(null);
+        }}
+        aria-label={primaryActionLabel}
+        title={primaryActionLabel}
+        className="fixed bottom-6 right-6 z-40 flex h-16 w-16 items-center justify-center rounded-full bg-brand text-white shadow-lg transition hover:bg-brand-hover active:scale-95"
+      >
+        <Plus size={32} strokeWidth={2.5} />
+      </button>
 
       <div
         className="h-full overflow-y-auto overscroll-none"
@@ -1237,22 +1278,27 @@ export default function Page4() {
               {filteredAccidents.map((item) => (
                 <div
                   key={item.id}
-                  className={`rounded-md p-4 ${
-                    item.public ? "bg-[#F2E5C8]" : "bg-[#F7F7F7]"
-                  }`}
+                  className="rounded-md border border-[#E6D7C8] bg-white p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="w-full">
-                      <p className="text-base font-bold text-[#2f2a27]">{item.food_name}</p>
-                      <p className="mt-1 text-sm text-[#2f2a27]">{item.accident_content}</p>
-                      <p className="mt-1 text-xs text-[#6b5a4e]">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-base font-bold text-[#2f2a27]">{item.food_name}</p>
+                        {item.public && (
+                          <span className="rounded-full bg-[#F0E4D8] px-2 py-0.5 text-xs font-semibold text-[#8A6D4E]">
+                            公開
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1 text-sm text-[#6b5a4e]">{item.accident_content}</p>
+                      <p className="mt-1 text-xs text-[#8A776A]">
                         {item.child_name} / {formatDateTime(item.created_at)}
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => startInlineAccidentEdit(item)}
-                      className="rounded p-1 text-[#2f2a27] hover:bg-[#e7ddd3]"
+                      className="rounded p-1 text-brand hover:bg-[#F0E4D8]"
                       aria-label={`${item.food_name}のヒヤリハットを編集`}
                     >
                       <Pencil size={18} />
@@ -1279,7 +1325,7 @@ export default function Page4() {
                   value={childName}
                   onChangeValue={setChildName}
                   options={childOptions}
-                  className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-sm"
+                  className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-base"
                 />
               </label>
 
@@ -1287,14 +1333,14 @@ export default function Page4() {
                 <button
                   type="button"
                   onClick={closeAddForm}
-                  className="h-11 rounded-lg border border-[#B79074] bg-[#FFFDF8] text-sm font-bold text-[#B79074]"
+                  className="h-11 rounded-lg border border-brand bg-[#FFFDF8] text-sm font-bold text-brand"
                 >
                   キャンセル
                 </button>
                 <button
                   type="submit"
                   disabled={submitLoading}
-                  className="h-11 rounded-lg bg-[#B79074] text-sm font-bold text-white shadow-sm disabled:opacity-70"
+                  className="h-11 rounded-lg bg-brand text-sm font-bold text-white shadow-sm disabled:opacity-70"
                 >
                   {submitLoading ? "登録中" : "登録"}
                 </button>
@@ -1308,7 +1354,7 @@ export default function Page4() {
                   value={cookFoodName}
                   onChangeValue={setCookFoodName}
                   options={cookFoodOptions}
-                  className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-sm"
+                  className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-base"
                 />
               </label>
 
@@ -1335,7 +1381,7 @@ export default function Page4() {
                           [row.key]: e.target.value,
                         }))
                       }
-                      className="h-9 w-full rounded-lg border border-[#B7A99A] bg-white px-2 text-sm"
+                      className="h-9 w-full rounded-lg border border-[#B7A99A] bg-white px-2 text-base"
                     />
                   </div>
                 ))}
@@ -1345,14 +1391,14 @@ export default function Page4() {
                 <button
                   type="button"
                   onClick={closeAddForm}
-                  className="h-11 rounded-lg border border-[#B79074] bg-[#FFFDF8] text-sm font-bold text-[#B79074]"
+                  className="h-11 rounded-lg border border-brand bg-[#FFFDF8] text-sm font-bold text-brand"
                 >
                   キャンセル
                 </button>
                 <button
                   type="submit"
                   disabled={submitLoading}
-                  className="h-11 rounded-lg bg-[#B79074] text-sm font-bold text-white shadow-sm disabled:opacity-70"
+                  className="h-11 rounded-lg bg-brand text-sm font-bold text-white shadow-sm disabled:opacity-70"
                 >
                   {submitLoading ? "登録中" : "登録"}
                 </button>
@@ -1366,7 +1412,8 @@ export default function Page4() {
                   value={accidentChildName}
                   onChangeValue={setAccidentChildName}
                   options={childOptions}
-                  className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-sm"
+                  className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-base"
+                  unregisteredMessage="登録されている園児名を入れてください。園児情報から追加できます。"
                 />
               </label>
 
@@ -1376,7 +1423,7 @@ export default function Page4() {
                   value={accidentFood}
                   onChangeValue={setAccidentFood}
                   options={cookFoodOptions}
-                  className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-sm"
+                  className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-base"
                 />
               </label>
 
@@ -1386,7 +1433,7 @@ export default function Page4() {
                   value={accidentDetail}
                   onChange={(e) => setAccidentDetail(e.target.value)}
                   rows={4}
-                  className="mt-1 w-full rounded-lg border border-[#B7A99A] bg-white p-2 text-sm"
+                  className="mt-1 w-full rounded-lg border border-[#B7A99A] bg-white p-2 text-base"
                 />
               </label>
 
@@ -1404,14 +1451,14 @@ export default function Page4() {
                 <button
                   type="button"
                   onClick={closeAddForm}
-                  className="h-11 rounded-lg border border-[#B79074] bg-[#FFFDF8] text-sm font-bold text-[#B79074]"
+                  className="h-11 rounded-lg border border-brand bg-[#FFFDF8] text-sm font-bold text-brand"
                 >
                   キャンセル
                 </button>
                 <button
                   type="submit"
                   disabled={submitLoading}
-                  className="h-11 rounded-lg bg-[#B79074] text-sm font-bold text-white shadow-sm disabled:opacity-70"
+                  className="h-11 rounded-lg bg-brand text-sm font-bold text-white shadow-sm disabled:opacity-70"
                 >
                   {submitLoading ? "登録中" : editingAccidentId != null ? "更新" : "登録"}
                 </button>
@@ -1438,7 +1485,8 @@ export default function Page4() {
                     value={noEat}
                     onChangeValue={setNoEat}
                     options={cookFoodOptions}
-                    className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-sm"
+                    className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-base"
+                    unregisteredMessage="登録されている食材名を入れてください。調理方法から追加できます。"
                   />
                 </label>
                 <label className="inline-flex h-10 items-center gap-2 text-sm font-medium text-[#2f2a27]">
@@ -1458,7 +1506,7 @@ export default function Page4() {
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   rows={4}
-                  className="mt-1 w-full rounded-lg border border-[#B7A99A] bg-white p-2 text-sm"
+                  className="mt-1 w-full rounded-lg border border-[#B7A99A] bg-white p-2 text-base"
                 />
               </label>
 
@@ -1466,14 +1514,14 @@ export default function Page4() {
                 <button
                   type="button"
                   onClick={backToFoodList}
-                  className="h-11 rounded-lg border border-[#B79074] bg-[#FFFDF8] text-sm font-bold text-[#B79074]"
+                  className="h-11 rounded-lg border border-brand bg-[#FFFDF8] text-sm font-bold text-brand"
                 >
                   キャンセル
                 </button>
                 <button
                   type="submit"
                   disabled={submitLoading}
-                  className="h-11 rounded-lg bg-[#B79074] text-sm font-bold text-white shadow-sm disabled:opacity-70"
+                  className="h-11 rounded-lg bg-brand text-sm font-bold text-white shadow-sm disabled:opacity-70"
                 >
                   {submitLoading ? "登録中" : editingAnswerId ? "食材情報を更新" : "食材を追加"}
                 </button>
@@ -1489,7 +1537,7 @@ export default function Page4() {
                   value={childName}
                   onChangeValue={setChildName}
                   options={childOptions}
-                  className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-sm"
+                  className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-base"
                 />
               </label>
 
@@ -1507,9 +1555,7 @@ export default function Page4() {
                       {currentFoods.map((item) => (
                         <div
                           key={item.id}
-                          className={`flex items-center gap-2 rounded-lg p-3 ${
-                            item.can_eat ? "bg-[#FFF2D2]" : "bg-[#f3e9e9]"
-                          }`}
+                          className="flex items-center gap-2 rounded-lg bg-[#f3e9e9] p-3"
                         >
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-medium text-[#2f2a27]">{item.no_eat}</p>
@@ -1544,7 +1590,7 @@ export default function Page4() {
                 <button
                   type="button"
                   onClick={startAddFood}
-                  className="mt-3 w-full rounded-lg border border-[#B79074] bg-[#FFFDF8] py-2 text-sm font-bold text-[#765B49] hover:bg-[#F0E4D8]"
+                  className="mt-3 w-full rounded-lg border border-brand bg-[#FFFDF8] py-2 text-sm font-bold text-[#765B49] hover:bg-[#F0E4D8]"
                 >
                   + 注意する食材を追加
                 </button>
@@ -1554,14 +1600,14 @@ export default function Page4() {
                 <button
                   type="button"
                   onClick={closeInlineEditor}
-                  className="h-11 rounded-lg border border-[#B79074] bg-[#FFFDF8] text-sm font-bold text-[#B79074]"
+                  className="h-11 rounded-lg border border-brand bg-[#FFFDF8] text-sm font-bold text-brand"
                 >
                   キャンセル
                 </button>
                 <button
                   type="submit"
                   disabled={submitLoading}
-                  className="h-11 rounded-lg bg-[#B79074] text-sm font-bold text-white shadow-sm disabled:opacity-70"
+                  className="h-11 rounded-lg bg-brand text-sm font-bold text-white shadow-sm disabled:opacity-70"
                 >
                   {submitLoading ? "登録中" : "保存"}
                 </button>
@@ -1601,7 +1647,7 @@ export default function Page4() {
                       [phase.key]: e.target.value,
                     }))
                   }
-                  className="h-9 w-full rounded border border-[#B7A99A] bg-white px-2 text-sm"
+                  className="h-9 w-full rounded border border-[#B7A99A] bg-white px-2 text-base"
                 />
               </div>
             ))}
@@ -1609,14 +1655,14 @@ export default function Page4() {
               <button
                 type="button"
                 onClick={cancelInlineCookEdit}
-                className="h-11 rounded border-[3px] border-[#B79074] bg-[#FFFDF8] text-base font-bold text-[#B79074]"
+                className="h-11 rounded border-[3px] border-brand bg-[#FFFDF8] text-base font-bold text-brand"
               >
                 キャンセル
               </button>
               <button
                 type="submit"
                 disabled={submitLoading}
-                className="h-11 rounded bg-[#B79074] text-base font-bold text-white disabled:opacity-70"
+                className="h-11 rounded bg-brand text-base font-bold text-white disabled:opacity-70"
               >
                 {submitLoading ? "登録中" : "保存"}
               </button>
@@ -1628,7 +1674,7 @@ export default function Page4() {
 
       {editingAccidentId != null && (
         <EditModal title="ヒヤリハットを編集" onClose={cancelInlineAccidentEdit}>
-          <form onSubmit={handleInlineAccidentSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-3">
+          <form onSubmit={handleInlineAccidentSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-3" aria-busy={submitLoading}>
             <label className="block text-sm font-medium text-[#2f2a27]">
               園児名
               <SuggestionInput
@@ -1636,6 +1682,7 @@ export default function Page4() {
                 onChangeValue={setAccidentChildName}
                 options={childOptions}
                 className="mt-1 h-10 w-full rounded border-[2px] border-[#7f7f7f] bg-white px-2"
+                unregisteredMessage="登録されている園児名を入れてください。園児情報から追加できます。"
               />
             </label>
             <label className="block text-sm font-medium text-[#2f2a27]">
@@ -1665,18 +1712,26 @@ export default function Page4() {
               />
               公開する
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <button
                 type="button"
                 onClick={cancelInlineAccidentEdit}
-                className="h-10 rounded border-[2px] border-[#B79074] bg-[#FFFDF8] text-sm font-bold text-[#B79074]"
+                className="h-10 rounded border-[2px] border-brand bg-[#FFFDF8] text-sm font-bold text-brand"
               >
                 キャンセル
               </button>
               <button
+                type="button"
+                onClick={() => handleDeleteAccident(editingAccidentId)}
+                disabled={submitLoading}
+                className="h-10 rounded border-[2px] border-red-500 bg-[#FFFDF8] text-sm font-bold text-red-600 disabled:opacity-70"
+              >
+                削除
+              </button>
+              <button
                 type="submit"
                 disabled={submitLoading}
-                className="h-10 rounded bg-[#B79074] text-sm font-bold text-white disabled:opacity-70"
+                className="h-10 rounded bg-brand text-sm font-bold text-white disabled:opacity-70"
               >
                 {submitLoading ? "登録中" : "保存"}
               </button>
@@ -1684,6 +1739,17 @@ export default function Page4() {
             {formMsg && <p className="text-sm text-[#6b5a4e]">{formMsg}</p>}
           </form>
         </EditModal>
+      )}
+
+      {submitLoading && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-white/60 backdrop-blur-[1px]"
+          role="status"
+          aria-live="polite"
+        >
+          <Loader2 className="h-10 w-10 animate-spin text-brand" aria-hidden="true" />
+          <span className="sr-only">登録中...</span>
+        </div>
       )}
     </main>
   );

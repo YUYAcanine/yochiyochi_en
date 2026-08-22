@@ -35,7 +35,7 @@ export default function EditModal({ title, onClose, children }: EditModalProps) 
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="max-h-[90vh] w-full max-w-xl overflow-y-auto overscroll-contain rounded-t-2xl border-t-[3px] border-[#B79074] bg-[#FFFDF8] p-5 shadow-2xl sm:rounded-2xl sm:border-[3px]"
+        className="max-h-[90vh] w-full max-w-xl overflow-y-auto overscroll-contain rounded-t-2xl border-t-[3px] border-brand bg-[#FFFDF8] p-5 shadow-2xl sm:rounded-2xl sm:border-[3px]"
       >
         <div className="mb-4 flex items-start justify-between gap-3 border-b border-[#E6D7C8] pb-3">
           <h3 className="text-lg font-bold text-[#5C3A2E]">{title}</h3>

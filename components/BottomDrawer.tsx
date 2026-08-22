@@ -202,7 +202,7 @@ export default function BottomDrawer({
                 type="button"
                 onClick={cookEditor.onSave}
                 disabled={cookEditor.saving}
-                className="rounded-lg bg-[#9C7B6C] px-4 py-2 text-sm font-semibold text-white hover:bg-[#A88877] disabled:opacity-60"
+                className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
               >
                 {cookEditor.saving ? "保存中..." : "保存する"}
               </button>

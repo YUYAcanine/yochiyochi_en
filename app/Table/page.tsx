@@ -132,13 +132,6 @@ export default function Page5() {
         heightClass="h-24"
         bgClass="bg-[#F0E4D8]"
         logoClassName="h-20 w-auto object-contain"
-        rightContent={
-          memberId ? (
-            <span className="text-sm font-semibold text-[#6B5A4E]">
-              {memberId}さんのページ
-            </span>
-          ) : null
-        }
       />
       <div className="pt-24 px-6 pb-10">
         <h1 className="text-xl font-bold mb-4">園児情報の確認</h1>
@@ -269,7 +262,7 @@ export default function Page5() {
           </Link>
           <Link
             href="/Register"
-            className="inline-flex items-center justify-center rounded-xl bg-[#9C7B6C] px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-[#A88877]"
+            className="inline-flex items-center justify-center rounded-xl bg-brand px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-brand-hover"
           >
             給食記録に戻る
           </Link>
