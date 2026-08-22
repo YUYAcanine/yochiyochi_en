@@ -3,6 +3,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 import { ComponentProps, ReactNode } from "react";
 
 type Props = {
@@ -49,7 +50,13 @@ export default function Ribbon({
     <div
       className={`fixed top-0 left-0 w-full ${heightClass} ${bgClass} flex items-center justify-between px-3 z-50 shadow-md ${containerClassName}`}
     >
-      <Link href={href} className="flex items-center" {...linkProps}>
+      <Link
+        href={href}
+        className="flex items-center gap-1 rounded-full px-2 py-1 -mx-2 -my-1 transition-colors hover:bg-black/5 active:bg-black/10"
+        aria-label="ホームに戻る"
+        {...linkProps}
+      >
+        <ChevronLeft className="h-6 w-6 shrink-0 text-[#6B5A4E]" strokeWidth={3} aria-hidden="true" />
         <Image
           src={logoSrc}
           alt={alt}

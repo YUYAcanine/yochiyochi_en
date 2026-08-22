@@ -14,6 +14,7 @@ type AccidentRow = {
   food_id: number | null;
   content: string | null;
   is_public: boolean | null;
+  garden_id: string | null;
 };
 
 const resolveChildId = async (
@@ -71,6 +72,8 @@ const mapAccidentItems = async (
     food_name: typeof row.food_id === "number" ? foodNameMap.get(row.food_id) ?? "" : "",
     accident_content: row.content ?? "",
     public: row.is_public,
+    // 実際の garden_id は個人特定につながりうるため返却せず、真偽値のみ渡す
+    from_garden: row.garden_id !== null,
   }));
 };
 
@@ -85,7 +88,7 @@ export async function GET(req: NextRequest) {
       // 公開フィードは未ログインでも見られる（RLSのis_public=true許可による）
       const { data: accidentData, error: accidentError } = await supabase
         .from("accidents")
-        .select("id, created_at, child_id, food_id, content, is_public")
+        .select("id, created_at, child_id, food_id, content, is_public, garden_id")
         .eq("is_public", true)
         .order("created_at", { ascending: false })
         .limit(normalizedLimit)
@@ -108,7 +111,7 @@ export async function GET(req: NextRequest) {
 
     const { data: accidentData, error: accidentError } = await authedSupabase
       .from("accidents")
-      .select("id, created_at, child_id, food_id, content, is_public")
+      .select("id, created_at, child_id, food_id, content, is_public, garden_id")
       .eq("garden_id", gardenId)
       .order("created_at", { ascending: false })
       .limit(normalizedLimit)
@@ -233,5 +236,39 @@ export async function PUT(req: NextRequest) {
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "更新に失敗しました" }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const ctx = await getAuthedContext(req);
+    if (!ctx) return NextResponse.json({ error: "ログインが必要です" }, { status: 401 });
+    const { supabase: authedSupabase, gardenId } = ctx;
+
+    const { id } = await req.json();
+    if (typeof id !== "string") {
+      return NextResponse.json({ error: "必須項目を入力してください" }, { status: 400 });
+    }
+
+    // RLSにより自園以外のgarden_idの行は削除できない（見えない）ため、
+    // ここでは明示的な所有チェックはせずgarden_id条件だけ付与する
+    const { error, count } = await authedSupabase
+      .from("accidents")
+      .delete({ count: "exact" })
+      .eq("id", id)
+      .eq("garden_id", gardenId);
+
+    if (error) {
+      console.error(error);
+      return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
+    }
+    if (count === 0) {
+      return NextResponse.json({ error: "削除対象が見つかりません" }, { status: 404 });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
   }
 }

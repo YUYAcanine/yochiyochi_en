@@ -15,13 +15,17 @@ export const PHASE_LABELS: Record<PhaseKey, string> = {
   phase5: "幼児期",
 };
 
-const PHASE_ITEMS: { key: PhaseKey; label: string; sub?: string }[] = [
-  { key: "phase1", label: "離乳初期", sub: "5〜6か月目安" },
-  { key: "phase2", label: "離乳中期", sub: "7〜8か月目安" },
-  { key: "phase3", label: "離乳後期", sub: "9〜11か月目安" },
-  { key: "phase4", label: "完了期", sub: "12〜18か月目安" },
-  { key: "phase5", label: "幼児期", sub: "18か月以降目安" },
-];
+export const PHASE_AGE_LABELS: Record<PhaseKey, string> = {
+  phase1: "5〜6か月目安",
+  phase2: "7〜8か月目安",
+  phase3: "9〜11か月目安",
+  phase4: "12〜18か月目安",
+  phase5: "18か月以降目安",
+};
+
+const PHASE_ITEMS: { key: PhaseKey; label: string; sub?: string }[] = (
+  Object.keys(PHASE_LABELS) as PhaseKey[]
+).map((key) => ({ key, label: PHASE_LABELS[key], sub: PHASE_AGE_LABELS[key] }));
 
 /* ---------- Storage helper ---------- */
 const STORAGE_KEY = "checklistPhase";

@@ -8,13 +8,22 @@ import { supabase } from "@/lib/supabaseClient";
 
 type IconType = "search" | "edit";
 
+const shuffle = <T,>(values: T[]): T[] => {
+  const result = [...values];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+};
+
 function ButtonIcon({ type }: { type: IconType }) {
   if (type === "search") {
     return (
       <svg
         viewBox="0 0 24 24"
         aria-hidden="true"
-        className="h-7 w-7 flex-none"
+        className="h-5 w-5 flex-none"
         fill="none"
         stroke="currentColor"
         strokeWidth="2.2"
@@ -31,7 +40,7 @@ function ButtonIcon({ type }: { type: IconType }) {
     <svg
       viewBox="0 0 24 24"
       aria-hidden="true"
-      className="h-7 w-7 flex-none"
+      className="h-5 w-5 flex-none"
       fill="none"
       stroke="currentColor"
       strokeWidth="2.2"
@@ -55,6 +64,8 @@ export default function Page1() {
       food_name: string;
       accident_content: string | null;
       created_at: string;
+      from_garden: boolean;
+      isNew: boolean;
     }>
   >([]);
   const [newsLoading, setNewsLoading] = useState(false);
@@ -96,13 +107,43 @@ export default function Page1() {
       setNewsLoading(true);
       setNewsError(null);
       try {
-        const res = await fetch("/api/accidents?public=true&limit=3", {
+        const res = await fetch("/api/accidents?public=true&limit=50", {
           cache: "no-store",
         });
         if (!res.ok) throw new Error("fetch failed");
         const json = await res.json();
         if (cancelled) return;
-        setHiyariNews(Array.isArray(json) ? json : json.items ?? []);
+        const fetched: Array<{
+          id: number;
+          food_name: string;
+          accident_content: string | null;
+          created_at: string;
+          from_garden: boolean;
+        }> = Array.isArray(json) ? json : json.items ?? [];
+
+        // API側で新着順に並んでいるので、保育園からの報告(from_garden)はそのまま先頭が最新になる
+        const gardenItems = fetched.filter((item) => item.from_garden);
+        const otherItems = shuffle(fetched.filter((item) => !item.from_garden));
+
+        let combined: Array<{
+          id: number;
+          food_name: string;
+          accident_content: string | null;
+          created_at: string;
+          from_garden: boolean;
+          isNew: boolean;
+        }>;
+
+        if (gardenItems.length > 0) {
+          const newest = gardenItems.slice(0, 2).map((item) => ({ ...item, isNew: true }));
+          const fillCount = 3 - newest.length;
+          const filler = otherItems.slice(0, fillCount).map((item) => ({ ...item, isNew: false }));
+          combined = [...newest, ...filler];
+        } else {
+          combined = otherItems.slice(0, 3).map((item) => ({ ...item, isNew: false }));
+        }
+
+        setHiyariNews(combined);
       } catch {
         if (!cancelled) setNewsError("新着ニュースの取得に失敗しました");
       } finally {
@@ -128,22 +169,10 @@ export default function Page1() {
     router.replace("/");
   };
 
-  const formatDateTime = (value: string) => {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, "0");
-    const dd = String(date.getDate()).padStart(2, "0");
-    const hh = String(date.getHours()).padStart(2, "0");
-    const mi = String(date.getMinutes()).padStart(2, "0");
-    const ss = String(date.getSeconds()).padStart(2, "0");
-    return `${yyyy}/${mm}/${dd} ${hh}:${mi}:${ss}`;
-  };
-
   return (
     <main className="min-h-screen bg-[#FFFDF8] px-4 py-6 text-[#2e2a28] sm:px-8">
       <div className="mx-auto w-full max-w-5xl">
-        <div className="mb-2 flex justify-end">
+        <div className="mb-0.5 flex justify-end">
           {!isLoggedIn ? (
             <Link
               href="/login"
@@ -202,7 +231,7 @@ export default function Page1() {
           </div>
         )}
 
-        <div className="mb-4 select-none sm:mb-6">
+        <div className="mb-2 select-none sm:mb-3">
           <Image
             src="/yoyochi3.png"
             alt="よちヨチ ロゴ"
@@ -216,7 +245,7 @@ export default function Page1() {
         <div className="mb-10 grid grid-cols-2 gap-4 sm:mb-12 sm:gap-6">
           <Link
             href="/Select"
-            className="flex items-center justify-center gap-2 rounded-3xl bg-[#B79074] px-3 py-4 text-white hover:brightness-105 sm:gap-3"
+            className="flex items-center justify-center gap-2 rounded-3xl bg-brand px-3 py-4 text-white hover:brightness-105 sm:gap-3"
           >
             <ButtonIcon type="search" />
             <span className="text-base font-semibold leading-none sm:text-2xl">
@@ -226,7 +255,7 @@ export default function Page1() {
           {isLoggedIn ? (
             <Link
               href="/Register"
-              className="flex items-center justify-center gap-2 rounded-3xl bg-[#B79074] px-3 py-4 text-white hover:brightness-105 sm:gap-3"
+              className="flex items-center justify-center gap-2 rounded-3xl bg-brand px-3 py-4 text-white hover:brightness-105 sm:gap-3"
             >
               <ButtonIcon type="edit" />
               <span className="text-base font-semibold leading-none sm:text-2xl">
@@ -260,13 +289,13 @@ export default function Page1() {
             <>
               {hiyariNews.length > 0 ? (
                 <ul className="space-y-3">
-                  {hiyariNews.map((item, index) => (
+                  {hiyariNews.map((item) => (
                     <li key={item.id} className="rounded-lg border border-[#E6D7C8] bg-white p-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="text-sm font-semibold text-[#5C3A2E] sm:text-base">
                           {item.food_name}
                         </div>
-                        {index === 0 && (
+                        {item.isNew && (
                           <span className="text-xs font-bold text-[#b76444] sm:text-sm">
                             New !
                           </span>
@@ -277,9 +306,6 @@ export default function Page1() {
                           {item.accident_content}
                         </p>
                       )}
-                      <div className="mt-1 text-xs text-[#675b52] sm:text-sm">
-                        {formatDateTime(item.created_at)}
-                      </div>
                     </li>
                   ))}
                 </ul>
