@@ -12,6 +12,7 @@ type AccidentRow = {
   created_at: string;
   child_id: string | null;
   food_id: number | null;
+  food_name: string | null;
   content: string | null;
   is_public: boolean | null;
   garden_id: string | null;
@@ -59,7 +60,12 @@ const mapAccidentItems = async (
   const childNameMap = new Map<string, string>(childRows.map((row) => [row.id, (row.name ?? "").trim()]));
 
   const foodIds = Array.from(
-    new Set(accidents.map((row) => row.food_id).filter((id): id is number => typeof id === "number"))
+    new Set(
+      accidents
+        .filter((row) => !row.food_name?.trim())
+        .map((row) => row.food_id)
+        .filter((id): id is number => typeof id === "number")
+    )
   );
   const foodNameMap = await buildFoodNameMap(client, foodIds);
 
@@ -69,7 +75,14 @@ const mapAccidentItems = async (
     // Rows with is_public=true are also served to unauthenticated third parties,
     // so the child's real name (PII) is omitted when includeChildName=false.
     child_name: options.includeChildName && row.child_id ? childNameMap.get(row.child_id) ?? "" : "",
-    food_name: typeof row.food_id === "number" ? foodNameMap.get(row.food_id) ?? "" : "",
+    // A nursery's custom food is invisible to anon under RLS, so the name
+    // snapshot saved at report time (food_name) is preferred over the join.
+    food_name:
+      row.food_name?.trim() ||
+      (typeof row.food_id === "number" ? foodNameMap.get(row.food_id) ?? "" : ""),
+    // Returned so edit forms can keep the link to the original food even if
+    // it has since been renamed and no longer matches the current food list.
+    food_id: row.food_id,
     accident_content: row.content ?? "",
     public: row.is_public,
     // The actual garden_id could allow identification, so it is not returned; only a boolean is passed
@@ -88,7 +101,7 @@ export async function GET(req: NextRequest) {
       // The public feed can be viewed without logging in (allowed by RLS's is_public=true rule)
       const { data: accidentData, error: accidentError } = await supabase
         .from("accidents")
-        .select("id, created_at, child_id, food_id, content, is_public, garden_id")
+        .select("id, created_at, child_id, food_id, food_name, content, is_public, garden_id")
         .eq("is_public", true)
         .order("created_at", { ascending: false })
         .limit(normalizedLimit)
@@ -111,7 +124,7 @@ export async function GET(req: NextRequest) {
 
     const { data: accidentData, error: accidentError } = await authedSupabase
       .from("accidents")
-      .select("id, created_at, child_id, food_id, content, is_public, garden_id")
+      .select("id, created_at, child_id, food_id, food_name, content, is_public, garden_id")
       .eq("garden_id", gardenId)
       .order("created_at", { ascending: false })
       .limit(normalizedLimit)
@@ -169,6 +182,7 @@ export async function POST(req: NextRequest) {
       garden_id: gardenId,
       child_id: childId,
       food_id: resolvedFoodId,
+      food_name: food_name.trim(),
       content: accident_content,
       is_public: Boolean(isPublic),
     });
@@ -216,6 +230,7 @@ export async function PUT(req: NextRequest) {
         {
           child_id: childId,
           food_id: resolvedFoodId,
+          food_name: food_name.trim(),
           content: accident_content,
           is_public: Boolean(isPublic),
         },
