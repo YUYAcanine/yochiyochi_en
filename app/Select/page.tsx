@@ -311,7 +311,7 @@ export default function Page2() {
   );
 
   // 事故情報
-  const { accidentInfo, showAccidentInfo, fetchByFoodId, reset: resetAccident } =
+  const { accidentInfo, showAccidentInfo, loadingAccidentInfo, fetchByFoodId, reset: resetAccident } =
     useAccidentInfo();
 
   // 画像入力（file→dataURL）
@@ -432,12 +432,13 @@ export default function Page2() {
   const handlePickText = useCallback(
     (text: string) => {
       setSelectedText(text);
+      resetAccident();
       trackGaEvent("tap_food", {
         food_name: text,
         source: "ocr",
       });
     },
-    []
+    [resetAccident]
   );
 
   /* ドロワー閉じる */
@@ -633,7 +634,7 @@ export default function Page2() {
     >
       <Ribbon
         href="/"
-        logoSrc="/yoyochi.jpg"
+        logoSrc="/yoyochi3.png"
         alt="よちヨチ ロゴ"
         heightClass="h-24"
         bgClass="bg-[#F0E4D8]"
@@ -682,6 +683,7 @@ export default function Page2() {
         onHideAccident={handleHideAccident}
         accidentInfo={accidentInfo}
         showAccidentInfo={showAccidentInfo}
+        loadingAccidentInfo={loadingAccidentInfo}
         cookEditor={{
           canEdit: Boolean(memberId),
           isEditing: isEditingCook,

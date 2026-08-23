@@ -48,7 +48,7 @@ export default function SearchPage() {
   const [accidentFoodItems, setAccidentFoodItems] = useState<AccidentFoodItem[]>([]);
 
   const { menuMap, foodIdMap, canonicalNameMap } = useMenuData();
-  const { accidentInfo, showAccidentInfo, fetchByFoodId, reset } = useAccidentInfo();
+  const { accidentInfo, showAccidentInfo, loadingAccidentInfo, fetchByFoodId, reset } = useAccidentInfo();
 
   const buildMatchedFoods = (rawQuery: string, limit?: number): FoodItem[] => {
     const trimmed = rawQuery.trim();
@@ -345,7 +345,7 @@ export default function SearchPage() {
     <main className="min-h-screen bg-[#FAF8F6] text-[#4D3F36] relative flex flex-col">
       <Ribbon
         href="/"
-        logoSrc="/yoyochi.jpg"
+        logoSrc="/yoyochi3.png"
         alt="よちヨチ ロゴ"
         heightClass="h-24"
         bgClass="bg-[#F0E4D8]"
@@ -476,6 +476,7 @@ export default function SearchPage() {
         onShowAccidentInfo={handleShowAccidentInfo}
         accidentInfo={accidentInfo}
         showAccidentInfo={showAccidentInfo}
+        loadingAccidentInfo={loadingAccidentInfo}
       />
     </main>
   );

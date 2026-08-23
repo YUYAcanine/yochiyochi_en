@@ -60,7 +60,7 @@ export default function NewsPage() {
     <main className="min-h-screen bg-[#FAF8F6] text-[#4D3F36] relative">
       <Ribbon
         href="/"
-        logoSrc="/yoyochi.jpg"
+        logoSrc="/yoyochi3.png"
         alt="よちヨチ ロゴ"
         heightClass="h-24"
         bgClass="bg-[#F0E4D8]"
