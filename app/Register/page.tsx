@@ -59,6 +59,8 @@ type SuggestionInputProps = {
   type?: "text" | "number";
   min?: number;
   unregisteredMessage?: string;
+  duplicateMessage?: string;
+  disableSuggestions?: boolean;
 };
 
 const formatDateTime = (value: string) => {
@@ -82,11 +84,13 @@ function SuggestionInput({
   type = "text",
   min,
   unregisteredMessage,
+  duplicateMessage,
+  disableSuggestions,
 }: SuggestionInputProps) {
   const [open, setOpen] = useState(false);
 
   const suggestions = useMemo(() => {
-    if (type !== "text") return [];
+    if (type !== "text" || disableSuggestions) return [];
 
     const unique = Array.from(
       new Set(
@@ -103,7 +107,7 @@ function SuggestionInput({
       const c = canon(item);
       return c.includes(q) || q.includes(c);
     });
-  }, [value, options, type]);
+  }, [value, options, type, disableSuggestions]);
 
   const showDropdown = type === "text" && open && suggestions.length > 0;
 
@@ -113,6 +117,13 @@ function SuggestionInput({
     if (!q) return false;
     return !options.some((item) => canon(item.trim()) === q);
   }, [value, options, unregisteredMessage]);
+
+  const isDuplicate = useMemo(() => {
+    if (!duplicateMessage) return false;
+    const q = canon(value.trim());
+    if (!q) return false;
+    return options.some((item) => canon(item.trim()) === q);
+  }, [value, options, duplicateMessage]);
 
   return (
     <div className={`relative ${wrapperClassName ?? ""}`}>
@@ -147,6 +158,9 @@ function SuggestionInput({
       )}
       {!showDropdown && isUnregistered && (
         <p className="mt-1 text-xs text-red-600">{unregisteredMessage}</p>
+      )}
+      {!showDropdown && !isUnregistered && isDuplicate && (
+        <p className="mt-1 text-xs text-red-600">{duplicateMessage}</p>
       )}
     </div>
   );
@@ -1151,11 +1165,11 @@ export default function Page4() {
     <main className="h-[100dvh] overflow-hidden bg-[#FFFDF8] text-[#2f2a27]">
       <Ribbon
         href="/"
-        logoSrc="/yoyochi3.png"
+        logoSrc="/yoyochi3-ribbon.png"
         alt="よちヨチ ロゴ"
         heightClass="h-24"
         bgClass="bg-[#F0E4D8]"
-        logoClassName="h-20 w-auto object-contain"
+        logoClassName="h-[5.5rem] w-auto object-contain"
       />
 
       <div ref={headerRef} className="fixed inset-x-0 top-24 z-40 border-b border-[#E6D7C8] bg-[#FFFDF8] shadow-md">
@@ -1333,6 +1347,7 @@ export default function Page4() {
                   value={cookFoodName}
                   onChangeValue={setCookFoodName}
                   options={cookFoodOptions}
+                  duplicateMessage="すでに登録されています。"
                   className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-base"
                 />
               </label>
@@ -1529,17 +1544,25 @@ export default function Page4() {
               className="space-y-4"
             >
               <h4 className="text-sm font-bold text-[#5C3A2E]">基本情報</h4>
-              <p className="text-sm text-[#6b5a4e]">
-                園児名を入力し、必要であれば注意する食材も続けて登録できます。
-              </p>
               <label className="block text-sm font-medium text-[#2f2a27]">
                 園児名
-                <SuggestionInput
-                  value={childName}
-                  onChangeValue={setChildName}
-                  options={childOptions}
-                  className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-base"
-                />
+                {foodEditTargetName === NEW_CHILD_SENTINEL ? (
+                  <SuggestionInput
+                    value={childName}
+                    onChangeValue={setChildName}
+                    options={childOptions}
+                    disableSuggestions
+                    duplicateMessage="すでに登録されている園児です。"
+                    className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-base"
+                  />
+                ) : (
+                  <SuggestionInput
+                    value={childName}
+                    onChangeValue={setChildName}
+                    options={childOptions}
+                    className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-base"
+                  />
+                )}
               </label>
 
               <div className="border-t border-[#E6D7C8] pt-4">
@@ -1592,10 +1615,14 @@ export default function Page4() {
                 <button
                   type="button"
                   onClick={startAddFood}
-                  className="mt-3 w-full rounded-lg border border-brand bg-[#FFFDF8] py-2 text-sm font-bold text-[#765B49] hover:bg-[#F0E4D8]"
+                  disabled={!childName.trim()}
+                  className="mt-3 w-full rounded-lg border border-brand bg-[#FFFDF8] py-2 text-sm font-bold text-[#765B49] hover:bg-[#F0E4D8] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#FFFDF8]"
                 >
                   + 注意する食材を追加
                 </button>
+                {!childName.trim() && (
+                  <p className="mt-1 text-xs text-[#8A776A]">園児名を入力すると食材を追加できます。</p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-2">

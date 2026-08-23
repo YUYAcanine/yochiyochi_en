@@ -345,11 +345,11 @@ export default function SearchPage() {
     <main className="min-h-screen bg-[#FAF8F6] text-[#4D3F36] relative flex flex-col">
       <Ribbon
         href="/"
-        logoSrc="/yoyochi3.png"
+        logoSrc="/yoyochi3-ribbon.png"
         alt="よちヨチ ロゴ"
         heightClass="h-24"
         bgClass="bg-[#F0E4D8]"
-        logoClassName="h-20 w-auto object-contain"
+        logoClassName="h-[5.5rem] w-auto object-contain"
       />
 
       <div className="flex-grow pt-24 px-4">

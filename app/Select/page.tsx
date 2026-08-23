@@ -634,12 +634,12 @@ export default function Page2() {
     >
       <Ribbon
         href="/"
-        logoSrc="/yoyochi3.png"
+        logoSrc="/yoyochi3-ribbon.png"
         alt="よちヨチ ロゴ"
         heightClass="h-24"
         bgClass="bg-[#F0E4D8]"
         containerClassName="translate-y-0"
-        logoClassName="h-20 w-auto object-contain"
+        logoClassName="h-[5.5rem] w-auto object-contain"
       />
 
       {imgSrc && (
