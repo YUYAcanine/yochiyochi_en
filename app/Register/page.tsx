@@ -1167,12 +1167,12 @@ export default function Page4() {
         href="/"
         logoSrc="/yoyochi3-ribbon.png"
         alt="よちヨチ ロゴ"
-        heightClass="h-24"
+        heightClass="h-20"
         bgClass="bg-[#F0E4D8]"
-        logoClassName="h-[5.5rem] w-auto object-contain"
+        logoClassName="h-[4.5rem] w-auto object-contain"
       />
 
-      <div ref={headerRef} className="fixed inset-x-0 top-24 z-40 border-b border-[#E6D7C8] bg-[#FFFDF8] shadow-md">
+      <div ref={headerRef} className="fixed inset-x-0 top-20 z-40 border-b border-[#E6D7C8] bg-[#FFFDF8] shadow-md">
         <div className="mx-auto w-full max-w-4xl px-3 pb-3 pt-3 sm:px-5">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
             <div className="grid grid-cols-3 gap-1 rounded-full bg-[#ece4dc] p-1 md:w-fit md:shrink-0">
@@ -1276,12 +1276,10 @@ export default function Page4() {
 
       <div
         className="h-full overflow-y-auto overscroll-none"
-        style={{ paddingTop: headerHeight + 112 }}
+        style={{ paddingTop: headerHeight + 96 }}
       >
       <div className="mx-auto w-full max-w-4xl px-3 pb-8 sm:px-5">
         <section className="space-y-3">
-          {listLoading && <p className="text-sm text-[#6b5a4e]">読み込み中...</p>}
-
           {!listLoading &&
             (activeTab === "hiyari" ? filteredAccidents.length === 0 : namesForTab.length === 0) && (
             <p className="rounded-md bg-[#F3F3F3] p-4 text-sm text-[#6b5a4e]">
@@ -1347,6 +1345,7 @@ export default function Page4() {
                   value={cookFoodName}
                   onChangeValue={setCookFoodName}
                   options={cookFoodOptions}
+                  disableSuggestions
                   duplicateMessage="すでに登録されています。"
                   className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-base"
                 />
@@ -1780,6 +1779,17 @@ export default function Page4() {
             {formMsg && <p className="text-sm text-[#6b5a4e]">{formMsg}</p>}
           </form>
         </EditModal>
+      )}
+
+      {listLoading && (
+        <div
+          className="fixed inset-0 z-[55] flex items-center justify-center bg-white/60 backdrop-blur-[1px]"
+          role="status"
+          aria-live="polite"
+        >
+          <Loader2 className="h-10 w-10 animate-spin text-brand" aria-hidden="true" />
+          <span className="sr-only">読み込み中...</span>
+        </div>
       )}
 
       {submitLoading && (

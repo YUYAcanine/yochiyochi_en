@@ -347,12 +347,12 @@ export default function SearchPage() {
         href="/"
         logoSrc="/yoyochi3-ribbon.png"
         alt="よちヨチ ロゴ"
-        heightClass="h-24"
+        heightClass="h-20"
         bgClass="bg-[#F0E4D8]"
-        logoClassName="h-[5.5rem] w-auto object-contain"
+        logoClassName="h-[4.5rem] w-auto object-contain"
       />
 
-      <div className="flex-grow pt-24 px-4">
+      <div className="flex-grow pt-20 px-4">
         <div className="max-w-2xl mx-auto">
           <PhaseSelectDropdown
             phase={phase}

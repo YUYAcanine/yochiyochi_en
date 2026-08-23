@@ -73,8 +73,8 @@ type AccidentFoodItem = {
 const DEFAULT_SCALE: ScaleInfo = { scale: 1, offsetX: 0, offsetY: 0 };
 
 /* 見た目用 */
-const RIBBON_HEIGHT = "6rem" as const;
-const RIBBON_SHIFT = "7rem" as const;
+const RIBBON_HEIGHT = "5rem" as const;
+const RIBBON_SHIFT = "6rem" as const;
 
 /* phase を menu のキーに変換（保険） */
 const toMenuPhaseKey = (phase: PhaseKey): keyof MenuInfo => {
@@ -636,10 +636,10 @@ export default function Page2() {
         href="/"
         logoSrc="/yoyochi3-ribbon.png"
         alt="よちヨチ ロゴ"
-        heightClass="h-24"
+        heightClass="h-20"
         bgClass="bg-[#F0E4D8]"
         containerClassName="translate-y-0"
-        logoClassName="h-[5.5rem] w-auto object-contain"
+        logoClassName="h-[4.5rem] w-auto object-contain"
       />
 
       {imgSrc && (
@@ -647,11 +647,11 @@ export default function Page2() {
           phase={phase as PhaseKey}
           onChangePhase={setPhase}
           labels={PHASE_LABELS}
-          className="absolute top-28 right-4 z-30"
+          className="absolute top-24 right-4 z-30"
         />
       )}
 
-      <div className="flex-grow pt-24">
+      <div className="flex-grow pt-20">
         {imgSrc ? (
           <OcrStage
             imgSrc={imgSrc}

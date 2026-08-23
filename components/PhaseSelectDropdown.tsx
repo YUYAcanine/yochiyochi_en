@@ -52,30 +52,27 @@ export default function PhaseSelectDropdown({
 
   return (
     <div ref={rootRef} className={className}>
-      <div className="relative rounded-xl bg-brand p-2 shadow-md">
+      <div className="relative">
         <button
           type="button"
           onClick={() => setOpen((prev) => !prev)}
-          className="h-11 min-w-[190px] rounded-md bg-[#F2F0EE] px-4 pr-16 text-left text-lg font-bold text-[#2F2A27] outline-none sm:min-w-[210px] md:min-w-[240px]"
+          className="flex h-10 min-w-[170px] items-center justify-between gap-2 rounded-lg border-2 border-brand bg-[#FBF3EC] px-3 text-sm font-semibold text-[#2F2A27] shadow-sm outline-none sm:min-w-[190px] sm:text-base"
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-label="時期を選択"
         >
-          {labels[phase]}
+          <span>{labels[phase]}</span>
+          <ChevronDown
+            strokeWidth={3}
+            className={`h-4 w-4 shrink-0 text-brand transition-transform ${open ? "rotate-180" : ""}`}
+          />
         </button>
-        <div className="pointer-events-none absolute right-2 top-2 h-11 w-12 rounded-r-md bg-brand" />
-        <ChevronDown
-          strokeWidth={3.5}
-          className={`pointer-events-none absolute right-5 top-1/2 h-6 w-6 -translate-y-1/2 text-white transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
-        />
 
         {open && (
           <ul
             role="listbox"
             aria-label="時期の選択肢"
-            className="absolute left-0 right-0 z-50 mt-2 overflow-hidden rounded-lg border border-[#D8C6B8] bg-[#F2F0EE] shadow-lg"
+            className="absolute left-0 right-0 z-50 mt-1 overflow-hidden rounded-lg border-2 border-brand bg-white shadow-md"
           >
             {keys.map((key) => {
               const selected = key === phase;
@@ -84,14 +81,14 @@ export default function PhaseSelectDropdown({
                   <button
                     type="button"
                     onClick={() => handleSelect(key)}
-                    className={`flex w-full items-baseline gap-2 px-4 py-2 text-left text-base font-semibold ${
+                    className={`flex w-full items-baseline gap-2 px-3 py-2 text-left text-sm ${
                       selected
-                        ? "bg-[#E2D2C4] text-[#2F2A27]"
-                        : "bg-[#F2F0EE] text-[#2F2A27] hover:bg-[#EDE2D8]"
+                        ? "bg-[#F0E4D8] font-semibold text-[#2F2A27]"
+                        : "text-[#2F2A27] hover:bg-[#F8F3EE]"
                     }`}
                   >
                     {labels[key]}
-                    <span className="text-xs font-medium text-[#6B5A4E]">{PHASE_AGE_LABELS[key]}</span>
+                    <span className="text-xs font-medium text-[#8A776A]">{PHASE_AGE_LABELS[key]}</span>
                   </button>
                 </li>
               );

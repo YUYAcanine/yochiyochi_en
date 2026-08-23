@@ -62,9 +62,9 @@ export default function NewsPage() {
         href="/"
         logoSrc="/yoyochi3-ribbon.png"
         alt="よちヨチ ロゴ"
-        heightClass="h-24"
+        heightClass="h-20"
         bgClass="bg-[#F0E4D8]"
-        logoClassName="h-[5.5rem] w-auto object-contain"
+        logoClassName="h-[4.5rem] w-auto object-contain"
       />
 
       <div className="pt-32 px-6 pb-10 max-w-3xl mx-auto">
