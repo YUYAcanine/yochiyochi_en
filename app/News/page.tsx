@@ -39,12 +39,12 @@ export default function NewsPage() {
         const json = await res.json();
         if (cancelled) return;
         const fetched: NewsItem[] = Array.isArray(json) ? json : json.items ?? [];
-        // 保育園からの報告は新着順のまま、それ以外(事前登録データ)はランダムな順番で表示する
+        // Nursery reports stay in newest-first order; everything else (pre-registered data) is shuffled
         const gardenItems = fetched.filter((item) => item.from_garden);
         const otherItems = shuffle(fetched.filter((item) => !item.from_garden));
         setItems([...gardenItems, ...otherItems]);
       } catch {
-        if (!cancelled) setError("新着ニュースの取得に失敗しました");
+        if (!cancelled) setError("Failed to load the latest news");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -61,7 +61,7 @@ export default function NewsPage() {
       <Ribbon
         href="/"
         logoSrc="/yoyochi3-ribbon.png"
-        alt="よちヨチ ロゴ"
+        alt="Yochiyochi logo"
         heightClass="h-20"
         bgClass="bg-[#F0E4D8]"
         logoClassName="h-[4.5rem] w-auto object-contain"
@@ -69,10 +69,10 @@ export default function NewsPage() {
 
       <div className="pt-32 px-6 pb-10 max-w-3xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-xl font-bold text-[#5C3A2E]">ヒヤリハット事例</h1>
+          <h1 className="text-xl font-bold text-[#5C3A2E]">Incident Reports</h1>
         </div>
 
-        {loading && <p className="text-[#6B5A4E]">読み込み中...</p>}
+        {loading && <p className="text-[#6B5A4E]">Loading...</p>}
         {error && <p className="text-red-600">{error}</p>}
 
         {!loading && !error && (
@@ -97,7 +97,7 @@ export default function NewsPage() {
               </ul>
             ) : (
               <p className="text-sm text-[#6B5A4E]">
-                新しいヒヤリハットはありません。
+                No recent incidents.
               </p>
             )}
           </div>
@@ -108,7 +108,7 @@ export default function NewsPage() {
             href="/"
             className="inline-flex items-center justify-center rounded-xl border border-[#D6C2B4] bg-[#F5EDE6] px-5 py-2 font-semibold text-[#6B5A4E] shadow-sm transition hover:bg-[#E7DBCF]"
           >
-            ホームに戻る
+            Back to Home
           </Link>
         </div>
       </div>

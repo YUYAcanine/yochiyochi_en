@@ -1,56 +1,56 @@
 food_name,description_phase1,description_phase2,description_phase3,description_phase4,description_phase5
-ごはん,柔らかく煮て10倍がゆにする,7倍がゆにする,5倍がゆにする,軟飯にする,大人と同等の調理方法
-ロールパン,×,×,細かくちぎって与える,小さく切って提供,大人と同等の調理方法
-クロワッサン,×,×,細かくちぎって与える,小さく切って提供,大人と同等の調理方法
-うどん,×,やわらかく煮てすりつぶす,短く切ってやわらかく煮る,普通にゆでる,大人と同等の調理方法
-ちゅうかめん,×,やわらかく煮てすりつぶす,短く切ってやわらかく煮る,普通にゆでる,大人と同等の調理方法
-マカロニ,×,やわらかく煮てすりつぶす,短く切ってやわらかく煮る,普通にゆでる,大人と同等の調理方法
-とり肉,×,よく煮てすりつぶす,細かく刻む,小さく切ってやわらかく煮る,大人と同等の調理方法
-ぶた肉,×,×,細かく刻んで加熱する,小さく切って提供,大人と同等の調理方法
-ぎゅう肉,×,×,細かく刻んで柔らかく煮る,小さく切って提供,大人と同等の調理方法
-ひき肉,×,×,よく加熱して細かくほぐす,小さくまとめて煮る,大人と同等の調理方法
-さわら,×,×,よく加熱してほぐす,小片にして提供,大人と同等の調理方法
-白身魚,×,×,よく加熱してほぐす,小片にして提供,大人と同等の調理方法
-鯖,×,×,よく加熱してほぐす,小片にして提供,大人と同等の調理方法
-いわし,×,×,よく加熱してほぐす,小片にして提供,大人と同等の調理方法
-ツナ,×,×,水煮を細かくほぐして与える,少量ずつ提供,大人と同等の調理方法
-ウインナー,×,×,×,細かく刻んで加熱する,大人と同等の調理方法
-たまご,×,×,固ゆでにして刻む,よく加熱した炒り卵,大人と同等の調理方法
-豆腐,なめらかにすりつぶす,柔らかく煮てすりつぶす,小さく刻む,大人と同等の調理方法,大人と同等の調理方法
-納豆,×,湯通しして粘りを取る,細かく刻む,大人と同等の調理方法,大人と同等の調理方法
-豆乳,×,少量を加熱して混ぜる,大人と同等の調理方法,大人と同等の調理方法,大人と同等の調理方法
-ひじき,×,やわらかく煮て刻む,小片,大人と同等の調理方法,大人と同等の調理方法
-わかめ,だしのみ,やわらかく煮て刻む,小片,大人と同等の調理方法,大人と同等の調理方法
-もずく,×,×,柔らかく煮て少量与える,大人と同等の調理方法,大人と同等の調理方法
-こんにゃく,×,×,×,小さく切って加熱,大人と同等の調理方法
-にんじん,裏ごしする,やわらかく煮て刻む,小さく切って煮る,普通に煮る,大人と同等の調理方法
-たまねぎ,裏ごしする,やわらかく煮て刻む,小さく切って煮る,大人と同等の調理方法,大人と同等の調理方法
-じゃがいも,裏ごししてペーストにする,柔らかく茹でてマッシュにする,角切りにして煮る,普通に煮て提供,大人と同等の調理方法
-さつまいも,裏ごししてペーストにする,柔らかく煮てマッシュにする,小さく切って煮る,普通に煮る,大人と同等の調理方法
-かぼちゃ,裏ごししてペーストにする,柔らかく煮てつぶす,小さく切って煮る,普通に煮る,大人と同等の調理方法
-なす,×,×,皮をむいて柔らかく煮る,小さく切って提供,大人と同等の調理方法
-とうもろこし,裏ごしする,薄皮を除いて刻む,粒を半分に切る,普通に加熱して提供,大人と同等の調理方法
-コーン,裏ごしする,薄皮を除いて刻む,粒を半分に切る,普通に加熱して提供,大人と同等の調理方法
-キャベツ,裏ごしする,やわらかく煮て刻む,小さく切って煮る,普通に加熱する,大人と同等の調理方法
-ごぼう,×,×,やわらかく煮て刻む,細切りにして柔らかく煮る,大人と同等の調理方法
-オクラ,×,やわらかく煮て刻む,小片,大人と同等の調理方法,大人と同等の調理方法
-ブロッコリー,×,やわらかく煮て刻む,小さく切る,普通に茹でる,大人と同等の調理方法
-もやし,×,よく煮て刻む,細かく刻んで炒め煮にする,短めに切る,大人と同等の調理方法
-ピーマン,×,×,皮をむいて柔らかく煮て刻む,大人と同等の調理方法,大人と同等の調理方法
-トマト,皮と種を除いて裏ごし,皮と種を除いて刻む,小さく切って加熱,普通に提供,大人と同等の調理方法
-ナムル,×,やわらかく煮て刻む,細かく刻んで炒め煮にする,短めに切る,大人と同等の調理方法
-煮豆,×,×,柔らかく煮てつぶす,大人と同等の調理方法,大人と同等の調理方法
-豆類（大豆・ひよこ豆など）,×,×,柔らかく煮てつぶす,大人と同等の調理方法,大人と同等の調理方法
-漬物,×,×,×,細かく刻んで少量与える,大人と同等の調理方法
-カレー,×,×,具材を小さく刻み柔らかく煮る,小さく切って煮る,大人と同等の調理方法
-コンソメスープ,×,×,×,味を薄めて少量与える,大人と同等の調理方法
-みそ汁,×,柔らかく煮て刻む,小さく切って煮る,薄味で具を小さく提供,大人と同等の調理方法
-豆乳スープ,×,少量加熱して使用,薄味で提供,普通に食べる,大人と同等の調理方法
-ヨーグルト,×,×,無糖タイプを少量与える,大人と同等の調理方法,大人と同等の調理方法
-バナナ,すりつぶす,つぶす,小さく切る,そのまま与える,大人と同等の調理方法
-りんご,すりおろす,柔らかく煮て刻む,小片,普通に食べる,大人と同等の調理方法
-みかん,×,果汁を薄めて与える,薄皮を除いて小片,小片,大人と同等の調理方法
-白桃,×,果汁を薄めて与える,柔らかく煮て小片にする,小片,大人と同等の調理方法
-ぶどう,×,×,皮と種を除いて小片,小片,大人と同等の調理方法
-パイナップル,×,果汁を薄めて与える,薄皮を除いて小片にする,小片,大人と同等の調理方法
-すいか,×,果汁を薄めて与える,薄皮を除いて小片にする,小片にする,大人と同等の調理方法
+Rice,Simmer until soft to make 10x rice porridge,Make 7x rice porridge,Make 5x rice porridge,Serve as soft cooked rice,Same as adult preparation
+Bread roll,Avoid,Avoid,Tear into small pieces before serving,Cut into small pieces and serve,Same as adult preparation
+Croissant,Avoid,Avoid,Tear into small pieces before serving,Cut into small pieces and serve,Same as adult preparation
+Udon noodles,Avoid,Simmer until soft and mash,Cut short and simmer until soft,Boil as usual,Same as adult preparation
+Chinese noodles,Avoid,Simmer until soft and mash,Cut short and simmer until soft,Boil as usual,Same as adult preparation
+Macaroni,Avoid,Simmer until soft and mash,Cut short and simmer until soft,Boil as usual,Same as adult preparation
+Chicken,Avoid,Simmer thoroughly and mash,Chop finely,Cut small and simmer until soft,Same as adult preparation
+Pork,Avoid,Avoid,Chop finely and cook,Cut into small pieces and serve,Same as adult preparation
+Beef,Avoid,Avoid,Chop finely and simmer until soft,Cut into small pieces and serve,Same as adult preparation
+Ground meat,Avoid,Avoid,Cook thoroughly and flake finely,Shape into small pieces and simmer,Same as adult preparation
+Spanish mackerel,Avoid,Avoid,Cook thoroughly and flake,Cut into small pieces and serve,Same as adult preparation
+White fish,Avoid,Avoid,Cook thoroughly and flake,Cut into small pieces and serve,Same as adult preparation
+Mackerel,Avoid,Avoid,Cook thoroughly and flake,Cut into small pieces and serve,Same as adult preparation
+Sardine,Avoid,Avoid,Cook thoroughly and flake,Cut into small pieces and serve,Same as adult preparation
+Tuna,Avoid,Avoid,Finely flake boiled/canned tuna before serving,Serve in small amounts,Same as adult preparation
+Sausage,Avoid,Avoid,Avoid,Chop finely and cook,Same as adult preparation
+Egg,Avoid,Avoid,Hard-boil and chop,Well-cooked scrambled egg,Same as adult preparation
+Tofu,Mash to a smooth puree,Simmer until soft and mash,Chop into small pieces,Same as adult preparation,Same as adult preparation
+Natto,Avoid,Blanch to reduce stickiness,Chop finely,Same as adult preparation,Same as adult preparation
+Soy milk,Avoid,Heat a small amount and mix in,Same as adult preparation,Same as adult preparation,Same as adult preparation
+Hijiki seaweed,Avoid,Simmer until soft and chop,Small pieces,Same as adult preparation,Same as adult preparation
+Wakame seaweed,Dashi (broth) only,Simmer until soft and chop,Small pieces,Same as adult preparation,Same as adult preparation
+Mozuku seaweed,Avoid,Avoid,Simmer until soft and serve a small amount,Same as adult preparation,Same as adult preparation
+Konjac,Avoid,Avoid,Avoid,Cut small and heat,Same as adult preparation
+Carrot,Strain to a smooth puree,Simmer until soft and chop,Cut small and simmer,Simmer as usual,Same as adult preparation
+Onion,Strain to a smooth puree,Simmer until soft and chop,Cut small and simmer,Same as adult preparation,Same as adult preparation
+Potato,Strain into a smooth paste,Boil until soft and mash,Cut into cubes and simmer,Simmer as usual and serve,Same as adult preparation
+Sweet potato,Strain into a smooth paste,Simmer until soft and mash,Cut small and simmer,Simmer as usual,Same as adult preparation
+Pumpkin,Strain into a smooth paste,Simmer until soft and mash,Cut small and simmer,Simmer as usual,Same as adult preparation
+Eggplant,Avoid,Avoid,Peel and simmer until soft,Cut into small pieces and serve,Same as adult preparation
+Corn,Strain to a smooth puree,Remove the skin and chop,Cut kernels in half,Heat as usual and serve,Same as adult preparation
+Corn (canned),Strain to a smooth puree,Remove the skin and chop,Cut kernels in half,Heat as usual and serve,Same as adult preparation
+Cabbage,Strain to a smooth puree,Simmer until soft and chop,Cut small and simmer,Heat as usual,Same as adult preparation
+Burdock root,Avoid,Avoid,Simmer until soft and chop,Cut into thin strips and simmer until soft,Same as adult preparation
+Okra,Avoid,Simmer until soft and chop,Small pieces,Same as adult preparation,Same as adult preparation
+Broccoli,Avoid,Simmer until soft and chop,Cut small,Boil as usual,Same as adult preparation
+Bean sprouts,Avoid,Simmer thoroughly and chop,Chop finely and braise,Cut into short pieces,Same as adult preparation
+Bell pepper,Avoid,Avoid,"Peel, simmer until soft, and chop",Same as adult preparation,Same as adult preparation
+Tomato,"Remove skin and seeds, then strain to a puree","Remove skin and seeds, then chop",Cut small and heat,Serve as usual,Same as adult preparation
+Namul (seasoned vegetables),Avoid,Simmer until soft and chop,Chop finely and braise,Cut into short pieces,Same as adult preparation
+Simmered beans,Avoid,Avoid,Simmer until soft and mash,Same as adult preparation,Same as adult preparation
+"Beans (soybeans, chickpeas, etc.)",Avoid,Avoid,Simmer until soft and mash,Same as adult preparation,Same as adult preparation
+Pickles,Avoid,Avoid,Avoid,Chop finely and serve a small amount,Same as adult preparation
+Curry,Avoid,Avoid,Chop ingredients finely and simmer until soft,Cut small and simmer,Same as adult preparation
+Consomme soup,Avoid,Avoid,Avoid,Dilute the flavor and serve a small amount,Same as adult preparation
+Miso soup,Avoid,Simmer until soft and chop,Cut small and simmer,Season lightly and serve ingredients cut small,Same as adult preparation
+Soy milk soup,Avoid,Heat a small amount before using,Season lightly and serve,Eat as usual,Same as adult preparation
+Yogurt,Avoid,Avoid,Serve a small amount of unsweetened yogurt,Same as adult preparation,Same as adult preparation
+Banana,Mash,Mash,Cut small,Serve as is,Same as adult preparation
+Apple,Grate,Simmer until soft and chop,Small pieces,Eat as usual,Same as adult preparation
+Mandarin orange,Avoid,Dilute the juice before serving,Remove the thin skin and cut into small pieces,Small pieces,Same as adult preparation
+White peach,Avoid,Dilute the juice before serving,Simmer until soft and cut into small pieces,Small pieces,Same as adult preparation
+Grapes,Avoid,Avoid,"Remove skin and seeds, cut into small pieces",Small pieces,Same as adult preparation
+Pineapple,Avoid,Dilute the juice before serving,Remove the thin skin and cut into small pieces,Small pieces,Same as adult preparation
+Watermelon,Avoid,Dilute the juice before serving,Remove the thin skin and cut into small pieces,Cut into small pieces,Same as adult preparation

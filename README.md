@@ -29,50 +29,50 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## データベース構成
+## Database structure
 
-このアプリはSupabase（PostgreSQL）をバックエンドとして使用しています。
+This app uses Supabase (PostgreSQL) as its backend.
 
-### 認証
+### Authentication
 
-会員ID・パスワードでのログインですが、実体はSupabase Authです。会員IDを`{会員ID}@members.yochiyochi.local`という合成メールアドレスに変換してメール/パスワード認証として扱っています。新規登録は[app/api/auth/register/route.ts](app/api/auth/register/route.ts)がService Role Keyを使ってAuthユーザー・`gardens`・`garden_members`を作成します。
+Members log in with a member ID and password, but under the hood this is Supabase Auth. The member ID is converted into a synthetic email address of the form `{memberId}@members.yochiyochi.local` and handled as email/password authentication. Sign-up is handled by [app/api/auth/register/route.ts](app/api/auth/register/route.ts), which uses the Service Role Key to create an Auth user along with `gardens` and `garden_members` rows.
 
-### テーブル構成
+### Tables
 
-| テーブル | 役割 |
+| Table | Purpose |
 | --- | --- |
-| `gardens` | 保育園（テナント）本体。`member_code`が旧・会員IDに相当 |
-| `garden_members` | `auth.users`と`gardens`の紐付け |
-| `foods` | 食材マスタ。`garden_id`が`null`なら全園共通、値があれば園独自 |
-| `food_aliases` | 食材名の表記揺れ（別名 → `foods.id`） |
-| `cooking_methods` | 離乳段階別（phase1〜5）の調理方法。共通/園独自は`foods`と同様に`garden_id`で判定 |
-| `children` | 園児 |
-| `child_food_restrictions` | 園児ごとの食材制限（食べられない食材・メモ） |
-| `accidents` | ヒヤリハット・事故情報。`garden_id`/`child_id`が`null`かつ`is_public=true`の行は全園共通の一般事例 |
+| `gardens` | The nursery (tenant) itself. `member_code` corresponds to the legacy member ID |
+| `garden_members` | Links `auth.users` to a `gardens` row |
+| `foods` | Food master data. A `null` `garden_id` means it's shared across all nurseries; a value means it's nursery-specific |
+| `food_aliases` | Alternate spellings/names for foods (alias -> `foods.id`) |
+| `cooking_methods` | Cooking methods by weaning stage (phase1-5). Shared vs. nursery-specific is determined by `garden_id`, same as `foods` |
+| `children` | Children enrolled at a nursery |
+| `child_food_restrictions` | Per-child food restrictions (foods they can't eat, notes) |
+| `accidents` | Near-miss / choking incident reports. Rows where `garden_id`/`child_id` are `null` and `is_public=true` are shared, general-purpose incidents visible across all nurseries |
 
-### アクセス制御
+### Access control
 
-各テーブルにRLS（Row Level Security）を設定しており、ログインユーザーは自分が所属する園（`garden_members`経由）のデータのみ読み書きできます。共通マスタ（`garden_id`が`null`の食材・調理方法）と、`is_public=true`のヒヤリハットは未ログインでも閲覧可能です。
+Row Level Security (RLS) is configured on every table, so a logged-in user can only read/write data belonging to the nursery they're a member of (via `garden_members`). Shared master data (foods/cooking methods with a `null` `garden_id`) and incidents with `is_public=true` are visible even when logged out.
 
-### 環境変数
+### Environment variables
 
-`.env.local`に以下を設定してください。
+Set the following in `.env.local`:
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=<SupabaseプロジェクトのURL>
+NEXT_PUBLIC_SUPABASE_URL=<your Supabase project URL>
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon public key>
 SUPABASE_SERVICE_ROLE_KEY=<service_role key>
 ```
 
-`SUPABASE_SERVICE_ROLE_KEY`はサーバー専用（会員登録APIでのみ使用）。`NEXT_PUBLIC_`を付けず、クライアントに公開しないこと。
+`SUPABASE_SERVICE_ROLE_KEY` is server-only (used solely by the member registration API). Never prefix it with `NEXT_PUBLIC_` or expose it to the client.
 
-### 関連コード
+### Related code
 
-- [lib/supabaseClient.ts](lib/supabaseClient.ts) — ブラウザ用Supabaseクライアント
-- [lib/supabaseAdmin.ts](lib/supabaseAdmin.ts) — Service Role Key使用のサーバー専用クライアント
-- [lib/apiAuth.ts](lib/apiAuth.ts) — APIルートでのログインユーザー・所属園の解決
-- [lib/currentGarden.ts](lib/currentGarden.ts) — クライアント側での所属園ID解決
-- [types/database.ts](types/database.ts) — テーブルの型定義
+- [lib/supabaseClient.ts](lib/supabaseClient.ts) — Supabase client for the browser
+- [lib/supabaseAdmin.ts](lib/supabaseAdmin.ts) — server-only client using the Service Role Key
+- [lib/apiAuth.ts](lib/apiAuth.ts) — resolves the logged-in user and their nursery in API routes
+- [lib/currentGarden.ts](lib/currentGarden.ts) — resolves the current nursery ID on the client
+- [types/database.ts](types/database.ts) — table type definitions
 
 ## Deploy on Vercel
 

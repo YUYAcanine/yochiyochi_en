@@ -32,21 +32,21 @@ body {
   overflow-x: hidden;
 }
 
-/* モバイル対応 */
+/* Mobile support */
 html, body {
   height: 100%;
   width: 100%;
   overscroll-behavior: none;
 }
 
-/* iOS Safari対応 */
+/* iOS Safari support */
 @supports (-webkit-touch-callout: none) {
   body {
     -webkit-overflow-scrolling: touch;
   }
 }
 
-/* 入力欄タップ時の自動拡大を防止（フォントサイズが16px未満だとiOS Safariが自動でズームする） */
+/* Prevent auto-zoom on input focus (iOS Safari auto-zooms when font-size is under 16px) */
 @media (max-width: 767px) {
   input,
   textarea,

@@ -237,22 +237,22 @@ export default function SearchPage() {
           .filter((entry) => entry.name.length > 0);
 
         const lines = normalized.map((entry) => {
-          const status = entry.canEat ? "食べられる" : "食べられない";
-          const noteText = entry.note ? `（${entry.note}）` : "";
-          return `・${entry.name}：${status}${noteText}`;
+          const status = entry.canEat ? "can eat" : "cannot eat";
+          const noteText = entry.note ? ` (${entry.note})` : "";
+          return `- ${entry.name}: ${status}${noteText}`;
         });
 
         if (lines.length > 0) {
-          parts.push(`【注意する食材】\n${lines.join("\n")}`);
+          parts.push(`[Foods to watch]\n${lines.join("\n")}`);
         }
       }
 
       if (accidentEntries && accidentEntries.length > 0) {
         const lines = accidentEntries.map((entry) => {
           const name = entry.name?.trim();
-          return `・${name ? `${name}：` : ""}${entry.content}`;
+          return `- ${name ? `${name}: ` : ""}${entry.content}`;
         });
-        parts.push(`【ヒヤリハット報告】\n${lines.join("\n")}`);
+        parts.push(`[Incident reports]\n${lines.join("\n")}`);
       }
 
       return parts.join("\n\n");
@@ -346,7 +346,7 @@ export default function SearchPage() {
       <Ribbon
         href="/"
         logoSrc="/yoyochi3-ribbon.png"
-        alt="よちヨチ ロゴ"
+        alt="Yochiyochi logo"
         heightClass="h-20"
         bgClass="bg-[#F0E4D8]"
         logoClassName="h-[4.5rem] w-auto object-contain"
@@ -380,7 +380,7 @@ export default function SearchPage() {
                       e.currentTarget.blur();
                     }
                   }}
-                  placeholder="食材名を入力してください"
+                  placeholder="Enter a food name"
                   className="w-full px-4 py-3 pr-10 border border-[#D3C5B9] rounded-xl bg-white text-[#4D3F36] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-brand"
                 />
                 {searchQuery && (
@@ -391,7 +391,7 @@ export default function SearchPage() {
                       setShowSuggestions(false);
                     }}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280]"
-                    aria-label="入力をクリア"
+                    aria-label="Clear input"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -424,7 +424,7 @@ export default function SearchPage() {
               <button
                 onClick={handleSearch}
                 className="px-6 py-3 rounded-xl font-medium transition bg-brand hover:bg-brand-hover text-white"
-                aria-label="検索"
+                aria-label="Search"
               >
                 <Search className="w-5 h-5" />
               </button>
@@ -435,7 +435,7 @@ export default function SearchPage() {
             <div className="mb-8">
               {searchResults.length > 0 ? (
                 <div>
-                  <h2 className="text-base font-semibold text-[#3A2C25] mb-4">検索結果</h2>
+                  <h2 className="text-base font-semibold text-[#3A2C25] mb-4">Search Results</h2>
                   <div className="space-y-2">
                     {searchResults.map((food, index) => {
                       const flagged = Boolean(getChildEntries(food.food_name)) || Boolean(getAccidentEntries(food.food_name));
@@ -457,7 +457,7 @@ export default function SearchPage() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-[#6B7280] text-base">検索結果がありません。</p>
+                  <p className="text-[#6B7280] text-base">No results found.</p>
                 </div>
               )}
             </div>

@@ -30,7 +30,7 @@ export function useMenuMap(csvPath = "/nagasakidemo.csv") {
                 phase5: row.description_phase5?.trim(),
               };
 
-              // 既存値があれば上書きしない（先勝ち）
+              // Do not overwrite an existing value (first one wins)
               map[key] = {
                 phase1: map[key]?.phase1 ?? next.phase1,
                 phase2: map[key]?.phase2 ?? next.phase2,

@@ -1,13 +1,13 @@
 /**
  * useImageInput
  *
- * 画像ファイル入力に関する副作用処理をまとめたカスタムフック。
+ * A custom hook that bundles side-effect handling for image file input.
  *
- * - 画像の圧縮（browser-image-compression）
- * - File / Blob を DataURL に変換
+ * - Image compression (browser-image-compression)
+ * - Converting a File / Blob to a DataURL
  *
- * UIコンポーネント側では File を渡すだけで済むようにし、
- * 画像処理の詳細を隠蔽することを目的としている。
+ * The goal is to let UI components just pass a File, hiding the
+ * details of image processing from them.
 **/
 
 "use client";

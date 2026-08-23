@@ -14,7 +14,7 @@ type GeminiCase = {
   age?: string;
   item?: string;
   situation?: string;
-  source?: "事故情報" | "ヒヤリハット";
+  source?: "accident report" | "incident";
 };
 
 type GeminiResult = {
@@ -95,7 +95,7 @@ function formatResult(result: GeminiResult): string {
   const lines: string[] = [];
 
   if (result.overview?.trim()) {
-    lines.push(`要点\n${result.overview.trim()}`);
+    lines.push(`Summary\n${result.overview.trim()}`);
   }
 
   const cases = (result.cases ?? []).filter(
@@ -103,18 +103,18 @@ function formatResult(result: GeminiResult): string {
   );
   if (cases.length > 0) {
     const caseLines = cases.map((c, i) => {
-      const age = c.age?.trim() || "年齢不明";
-      const item = c.item?.trim() || "対象不明";
-      const situation = c.situation?.trim() || "状況不明";
-      const source = c.source === "ヒヤリハット" ? "ヒヤリハット" : "事故情報";
-      return `${i + 1}. ${age}の子が ${item} を ${situation}（${source}）`;
+      const age = c.age?.trim() || "age unknown";
+      const item = c.item?.trim() || "item unknown";
+      const situation = c.situation?.trim() || "situation unknown";
+      const source = c.source === "incident" ? "incident" : "accident report";
+      return `${i + 1}. A child aged ${age} choked on ${item} while ${situation} (${source})`;
     });
-    lines.push(`詰まらせ事例\n${caseLines.join("\n")}`);
+    lines.push(`Choking cases\n${caseLines.join("\n")}`);
   }
 
   const notes = (result.notes ?? []).map((n) => n?.trim()).filter(Boolean);
   if (notes.length > 0) {
-    lines.push(`補足\n${notes.map((n) => `・${n}`).join("\n")}`);
+    lines.push(`Notes\n${notes.map((n) => `- ${n}`).join("\n")}`);
   }
 
   return lines.join("\n\n").trim();
@@ -122,21 +122,21 @@ function formatResult(result: GeminiResult): string {
 
 function buildPrompt(foodName: string | undefined, accidents: AccidentRow[], hiyari: HiyariRow[]) {
   return [
-    "あなたは保育・離乳食の事故記録編集者です。",
-    "入力データを読み取り、次を最優先で整理してください。",
-    "1) 何歳何か月の子が",
-    "2) 何を",
-    "3) どのような状況で詰まらせたのか",
-    "ルール:",
-    "- 年齢が不明なら age は「年齢不明」",
-    "- 詰まらせた対象が不明なら item は「対象不明」",
-    "- 状況が不明なら situation は「状況不明」",
-    "- 推測は最小限。断定せず入力に基づく",
-    "- cases は最大6件",
-    '- 出力は JSON のみ。キーは "overview", "cases", "notes"',
-    '- source は "事故情報" または "ヒヤリハット"',
+    "You are an editor of nursery/weaning-food accident records.",
+    "Read the input data and organize the following as top priority.",
+    "1) A child of what age (years/months)",
+    "2) Choked on what",
+    "3) Under what circumstances",
+    "Rules:",
+    "- If age is unknown, set age to \"age unknown\"",
+    "- If the choking item is unknown, set item to \"item unknown\"",
+    "- If the situation is unknown, set situation to \"situation unknown\"",
+    "- Keep speculation to a minimum; base output on the input without asserting facts not present",
+    "- cases should contain at most 6 entries",
+    '- Output JSON only. Keys are "overview", "cases", "notes"',
+    '- source is either "accident report" or "incident"',
     "",
-    "入力:",
+    "Input:",
     JSON.stringify(
       {
         foodName: foodName ?? null,

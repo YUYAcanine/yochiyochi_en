@@ -59,7 +59,7 @@ export default function PhaseSelectDropdown({
           className="flex h-10 min-w-[170px] items-center justify-between gap-2 rounded-lg border-2 border-brand bg-[#FBF3EC] px-3 text-sm font-semibold text-[#2F2A27] shadow-sm outline-none sm:min-w-[190px] sm:text-base"
           aria-haspopup="listbox"
           aria-expanded={open}
-          aria-label="時期を選択"
+          aria-label="Select stage"
         >
           <span>{labels[phase]}</span>
           <ChevronDown
@@ -71,7 +71,7 @@ export default function PhaseSelectDropdown({
         {open && (
           <ul
             role="listbox"
-            aria-label="時期の選択肢"
+            aria-label="Stage options"
             className="absolute left-0 right-0 z-50 mt-1 overflow-hidden rounded-lg border-2 border-brand bg-white shadow-md"
           >
             {keys.map((key) => {

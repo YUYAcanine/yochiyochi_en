@@ -22,7 +22,7 @@ export default function DeleteAccountPage() {
       const body = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setStatus(body?.error ?? "アカウントの削除に失敗しました。");
+        setStatus(body?.error ?? "Failed to delete the account.");
         setIsDeleting(false);
         return;
       }
@@ -36,7 +36,7 @@ export default function DeleteAccountPage() {
       router.replace("/");
     } catch (err) {
       console.error("delete account error:", err);
-      setStatus("アカウントの削除に失敗しました。時間をおいて再度お試しください。");
+      setStatus("Failed to delete the account. Please wait a moment and try again.");
       setIsDeleting(false);
     }
   };
@@ -45,9 +45,9 @@ export default function DeleteAccountPage() {
     <main className="min-h-screen bg-[#F0E4D8] flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6">
         <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-bold text-[#3A2C25]">アカウント削除</h1>
+          <h1 className="text-2xl font-bold text-[#3A2C25]">Delete account</h1>
           <p className="text-sm text-[#6B5A4E]">
-            この操作は取り消せません。アカウントを削除すると、登録済みの園児情報・食材制限・調理方法・ヒヤリハット記録もすべて削除されます。
+            This action cannot be undone. Deleting your account will also delete all registered children, food restrictions, cooking methods, and incident records.
           </p>
         </div>
 
@@ -58,7 +58,7 @@ export default function DeleteAccountPage() {
             onChange={(e) => setConfirmChecked(e.target.checked)}
             className="mt-1"
           />
-          内容を理解した上で、アカウントとすべての関連データを削除します。
+          I understand, and I want to delete my account and all related data.
         </label>
 
         <button
@@ -67,14 +67,14 @@ export default function DeleteAccountPage() {
           disabled={!confirmChecked || isDeleting}
           className="w-full rounded-xl bg-red-700 text-white font-semibold py-3 transition hover:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isDeleting ? "削除しています..." : "アカウントを削除する"}
+          {isDeleting ? "Deleting..." : "Delete account"}
         </button>
 
         {status && <p className="text-sm text-center text-red-600">{status}</p>}
 
         <div className="text-center">
           <Link href="/" className="text-[#6B5A4E] font-semibold underline">
-            キャンセルしてホームに戻る
+            Cancel and return home
           </Link>
         </div>
       </div>

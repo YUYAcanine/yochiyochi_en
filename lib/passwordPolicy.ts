@@ -1,6 +1,7 @@
-// パスワードポリシー: 8文字以上、かつ英小文字・英大文字・数字・記号のうち2種類以上を含むこと。
+// Password policy: at least 8 characters, and must include at least 2 of the
+// following character classes: lowercase letters, uppercase letters, digits, symbols.
 export const PASSWORD_POLICY_MESSAGE =
-  "パスワードは8文字以上で、英大文字・英小文字・数字・記号のうち2種類以上を組み合わせてください。";
+  "Password must be at least 8 characters and combine at least 2 of the following: uppercase letters, lowercase letters, digits, and symbols.";
 
 const CHAR_CLASS_PATTERNS = [/[a-z]/, /[A-Z]/, /[0-9]/, /[^a-zA-Z0-9]/];
 

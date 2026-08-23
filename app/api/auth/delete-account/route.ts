@@ -4,14 +4,14 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const runtime = "nodejs";
 
-// アカウント削除。認証済みユーザー自身のgardenに紐づく全データ
-// （園児情報・食材制限・調理方法・ヒヤリハット・園独自の食材・所属情報）を削除したのち、
-// Supabase Authのユーザー自体を削除する。RLSに依存せず確実に消すため
-// service role client（supabaseAdmin）で操作する。
+// Account deletion. Deletes all data tied to the authenticated user's own garden
+// (child info, food restrictions, cooking methods, incidents, garden-specific foods,
+// and membership info), then deletes the Supabase Auth user itself. Operates via the
+// service role client (supabaseAdmin) to ensure deletion regardless of RLS.
 export async function DELETE(req: NextRequest) {
   try {
     const ctx = await getAuthedContext(req);
-    if (!ctx) return NextResponse.json({ error: "ログインが必要です" }, { status: 401 });
+    if (!ctx) return NextResponse.json({ error: "Login is required" }, { status: 401 });
     const { userId, gardenId } = ctx;
 
     const { data: childRows, error: childSelectError } = await supabaseAdmin
@@ -22,7 +22,7 @@ export async function DELETE(req: NextRequest) {
 
     if (childSelectError) {
       console.error(childSelectError);
-      return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Delete failed" }, { status: 500 });
     }
 
     const childIds = (childRows ?? []).map((row) => row.id);
@@ -34,7 +34,7 @@ export async function DELETE(req: NextRequest) {
         .in("child_id", childIds);
       if (restrictionDeleteError) {
         console.error(restrictionDeleteError);
-        return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
+        return NextResponse.json({ error: "Delete failed" }, { status: 500 });
       }
     }
 
@@ -44,7 +44,7 @@ export async function DELETE(req: NextRequest) {
       .eq("garden_id", gardenId);
     if (accidentDeleteError) {
       console.error(accidentDeleteError);
-      return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Delete failed" }, { status: 500 });
     }
 
     const { error: childDeleteError } = await supabaseAdmin
@@ -53,7 +53,7 @@ export async function DELETE(req: NextRequest) {
       .eq("garden_id", gardenId);
     if (childDeleteError) {
       console.error(childDeleteError);
-      return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Delete failed" }, { status: 500 });
     }
 
     const { error: cookingMethodDeleteError } = await supabaseAdmin
@@ -62,7 +62,7 @@ export async function DELETE(req: NextRequest) {
       .eq("garden_id", gardenId);
     if (cookingMethodDeleteError) {
       console.error(cookingMethodDeleteError);
-      return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Delete failed" }, { status: 500 });
     }
 
     const { data: foodRows, error: foodSelectError } = await supabaseAdmin
@@ -72,7 +72,7 @@ export async function DELETE(req: NextRequest) {
       .returns<Array<{ id: number }>>();
     if (foodSelectError) {
       console.error(foodSelectError);
-      return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Delete failed" }, { status: 500 });
     }
 
     const foodIds = (foodRows ?? []).map((row) => row.id);
@@ -83,7 +83,7 @@ export async function DELETE(req: NextRequest) {
         .in("food_id", foodIds);
       if (foodAliasDeleteError) {
         console.error(foodAliasDeleteError);
-        return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
+        return NextResponse.json({ error: "Delete failed" }, { status: 500 });
       }
 
       const { error: foodDeleteError } = await supabaseAdmin
@@ -92,7 +92,7 @@ export async function DELETE(req: NextRequest) {
         .eq("garden_id", gardenId);
       if (foodDeleteError) {
         console.error(foodDeleteError);
-        return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
+        return NextResponse.json({ error: "Delete failed" }, { status: 500 });
       }
     }
 
@@ -102,7 +102,7 @@ export async function DELETE(req: NextRequest) {
       .eq("garden_id", gardenId);
     if (memberDeleteError) {
       console.error(memberDeleteError);
-      return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Delete failed" }, { status: 500 });
     }
 
     const { error: gardenDeleteError } = await supabaseAdmin
@@ -111,18 +111,18 @@ export async function DELETE(req: NextRequest) {
       .eq("id", gardenId);
     if (gardenDeleteError) {
       console.error(gardenDeleteError);
-      return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Delete failed" }, { status: 500 });
     }
 
     const { error: userDeleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
     if (userDeleteError) {
       console.error(userDeleteError);
-      return NextResponse.json({ error: "アカウントの削除に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Failed to delete account" }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
+    return NextResponse.json({ error: "Delete failed" }, { status: 500 });
   }
 }

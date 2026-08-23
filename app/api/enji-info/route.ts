@@ -55,21 +55,21 @@ const upsertChild = async (
 export async function POST(req: NextRequest) {
   try {
     const ctx = await getAuthedContext(req);
-    if (!ctx) return NextResponse.json({ error: "ログインが必要です" }, { status: 401 });
+    if (!ctx) return NextResponse.json({ error: "Login is required" }, { status: 401 });
     const { supabase, gardenId } = ctx;
 
     const { child_name, age_month, no_eat, can_eat, note, food_id, mode } = await req.json();
 
     if (!child_name || typeof age_month !== "number" || Number.isNaN(age_month)) {
-      return NextResponse.json({ error: "必須項目を入力してください" }, { status: 400 });
+      return NextResponse.json({ error: "Please fill in all required fields" }, { status: 400 });
     }
 
     const childId = await upsertChild(supabase, gardenId, child_name, age_month);
     if (childId == null) {
-      return NextResponse.json({ error: "園児情報の登録に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Failed to register child info" }, { status: 500 });
     }
 
-    // 園児追加は children のみ登録
+    // Adding a child only registers a row in children
     if (mode === "child") {
       return NextResponse.json({ ok: true, child_id: childId });
     }
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     const resolvedFoodId =
       typeof food_id === "number" ? food_id : await resolveFoodId(supabase, gardenId, noEatText);
     if (resolvedFoodId == null) {
-      return NextResponse.json({ error: "登録済みの食材を選択してください" }, { status: 400 });
+      return NextResponse.json({ error: "Please select a registered food" }, { status: 400 });
     }
 
     const { error } = await supabase.from("child_food_restrictions").insert({
@@ -90,20 +90,20 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error(error);
-      return NextResponse.json({ error: "登録に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Failed to register" }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true, child_id: childId });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "登録に失敗しました" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to register" }, { status: 500 });
   }
 }
 
 export async function PUT(req: NextRequest) {
   try {
     const ctx = await getAuthedContext(req);
-    if (!ctx) return NextResponse.json({ error: "ログインが必要です" }, { status: 401 });
+    if (!ctx) return NextResponse.json({ error: "Login is required" }, { status: 401 });
     const { supabase, gardenId } = ctx;
 
     const { id, child_name, age_month, no_eat, can_eat, note, food_id } = await req.json();
@@ -115,19 +115,19 @@ export async function PUT(req: NextRequest) {
       Number.isNaN(age_month) ||
       typeof can_eat !== "boolean"
     ) {
-      return NextResponse.json({ error: "必須項目を入力してください" }, { status: 400 });
+      return NextResponse.json({ error: "Please fill in all required fields" }, { status: 400 });
     }
 
     const childId = await upsertChild(supabase, gardenId, child_name, age_month);
     if (childId == null) {
-      return NextResponse.json({ error: "園児情報の更新に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Failed to update child info" }, { status: 500 });
     }
 
     const noEatText = typeof no_eat === "string" ? no_eat : "";
     const resolvedFoodId =
       typeof food_id === "number" ? food_id : await resolveFoodId(supabase, gardenId, noEatText);
     if (resolvedFoodId == null) {
-      return NextResponse.json({ error: "登録済みの食材を選択してください" }, { status: 400 });
+      return NextResponse.json({ error: "Please select a registered food" }, { status: 400 });
     }
 
     const { error } = await supabase
@@ -142,20 +142,20 @@ export async function PUT(req: NextRequest) {
 
     if (error) {
       console.error(error);
-      return NextResponse.json({ error: "更新に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Update failed" }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "更新に失敗しました" }, { status: 500 });
+    return NextResponse.json({ error: "Update failed" }, { status: 500 });
   }
 }
 
 export async function GET(req: NextRequest) {
   try {
     const ctx = await getAuthedContext(req);
-    if (!ctx) return NextResponse.json({ error: "ログインが必要です" }, { status: 401 });
+    if (!ctx) return NextResponse.json({ error: "Login is required" }, { status: 401 });
     const { supabase, gardenId } = ctx;
 
     const [{ data: childData, error: childError }, { data: restrictionData, error: restrictionError }] =
@@ -171,7 +171,7 @@ export async function GET(req: NextRequest) {
 
     if (childError || restrictionError) {
       console.error(childError ?? restrictionError);
-      return NextResponse.json({ error: "取得に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
     }
 
     const childRows = childData ?? [];
@@ -208,7 +208,7 @@ export async function GET(req: NextRequest) {
       const child = childMap.get(row.child_id);
       return {
         id: row.id,
-        child_name: child?.child_name ?? "園児",
+        child_name: child?.child_name ?? "Child",
         age_month: child?.age_month ?? 0,
         no_eat: typeof row.food_id === "number" ? foodNameMap.get(row.food_id) ?? "" : "",
         can_eat: row.cannot_eat === null ? null : !row.cannot_eat,
@@ -217,7 +217,7 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    // 食材制限が未登録の園児も一覧に出す（仮想行。DELETEでは無視する）
+    // Also include children with no registered food restrictions in the list (virtual row; ignored on DELETE)
     const existingChildIds = new Set(restrictionRows.map((row) => row.child_id));
     for (const [childId, child] of childMap.entries()) {
       if (existingChildIds.has(childId)) continue;
@@ -237,19 +237,19 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ items });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "取得に失敗しました" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   }
 }
 
 export async function DELETE(req: NextRequest) {
   try {
     const ctx = await getAuthedContext(req);
-    if (!ctx) return NextResponse.json({ error: "ログインが必要です" }, { status: 401 });
+    if (!ctx) return NextResponse.json({ error: "Login is required" }, { status: 401 });
     const { supabase, gardenId } = ctx;
 
     const { id, child_name, delete_child } = await req.json();
 
-    // 園児パネル削除: children から削除し、紐づく child_food_restrictions も削除
+    // Delete child panel: remove from children, and also remove associated child_food_restrictions
     if (delete_child === true && typeof child_name === "string" && child_name.trim()) {
       const targetName = child_name.trim();
       const { data: childRows, error: childError } = await supabase
@@ -261,7 +261,7 @@ export async function DELETE(req: NextRequest) {
 
       if (childError) {
         console.error(childError);
-        return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
+        return NextResponse.json({ error: "Delete failed" }, { status: 500 });
       }
 
       const childIds = (childRows ?? []).map((row) => row.id);
@@ -276,36 +276,36 @@ export async function DELETE(req: NextRequest) {
 
       if (restrictionDeleteError) {
         console.error(restrictionDeleteError);
-        return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
+        return NextResponse.json({ error: "Delete failed" }, { status: 500 });
       }
 
       const { error: childDeleteError } = await supabase.from("children").delete().in("id", childIds);
 
       if (childDeleteError) {
         console.error(childDeleteError);
-        return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
+        return NextResponse.json({ error: "Delete failed" }, { status: 500 });
       }
 
       return NextResponse.json({ ok: true });
     }
 
     if (typeof id !== "string") {
-      return NextResponse.json({ error: "必須項目を入力してください" }, { status: 400 });
+      return NextResponse.json({ error: "Please fill in all required fields" }, { status: 400 });
     }
 
-    // 疑似行（仮想ID）は child_food_restrictions 実体がないため無視
+    // Pseudo rows (virtual IDs) have no corresponding child_food_restrictions entity, so they are ignored
     if (id.startsWith(VIRTUAL_ID_PREFIX)) return NextResponse.json({ ok: true });
 
     const { error } = await supabase.from("child_food_restrictions").delete().eq("id", id);
 
     if (error) {
       console.error(error);
-      return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Delete failed" }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
+    return NextResponse.json({ error: "Delete failed" }, { status: 500 });
   }
 }

@@ -121,7 +121,7 @@ export default function Page1() {
           from_garden: boolean;
         }> = Array.isArray(json) ? json : json.items ?? [];
 
-        // API側で新着順に並んでいるので、保育園からの報告(from_garden)はそのまま先頭が最新になる
+        // The API already returns items newest-first, so garden reports (from_garden) stay in order
         const gardenItems = fetched.filter((item) => item.from_garden);
         const otherItems = shuffle(fetched.filter((item) => !item.from_garden));
 
@@ -145,7 +145,7 @@ export default function Page1() {
 
         setHiyariNews(combined);
       } catch {
-        if (!cancelled) setNewsError("新着ニュースの取得に失敗しました");
+        if (!cancelled) setNewsError("Failed to load the latest news");
       } finally {
         if (!cancelled) setNewsLoading(false);
       }
@@ -178,13 +178,13 @@ export default function Page1() {
               href="/login"
               className="rounded-md border-2 border-[#cda982] bg-[#f6f2ee] px-5 py-2 text-sm font-bold text-[#4b4038] hover:opacity-85"
             >
-              ログイン
+              Log in
             </Link>
           ) : (
             <div className="flex flex-col items-end gap-2">
               {memberId && (
                 <span className="text-xs font-semibold text-[#3c3733] sm:text-sm">
-                  {memberId}さんのページ
+                  {memberId}&apos;s page
                 </span>
               )}
               <button
@@ -192,7 +192,7 @@ export default function Page1() {
                 onClick={() => setShowAccountMenu(true)}
                 className="rounded-md border-2 border-[#cda982] bg-[#f6f2ee] px-6 py-1 text-xs font-bold text-[#4b4038] hover:opacity-85 sm:text-sm"
               >
-                ログアウト
+                Log out
               </button>
             </div>
           )}
@@ -212,20 +212,20 @@ export default function Page1() {
                 onClick={handleLogout}
                 className="w-full rounded-md border-2 border-[#cda982] bg-[#f6f2ee] px-6 py-2 text-sm font-bold text-[#4b4038] hover:opacity-85"
               >
-                ログアウト
+                Log out
               </button>
               <Link
                 href="/account/delete"
                 className="w-full rounded-md border-2 border-red-300 bg-[#f6f2ee] px-6 py-2 text-center text-sm font-bold text-red-700 hover:opacity-85"
               >
-                アカウント削除
+                Delete account
               </Link>
               <button
                 type="button"
                 onClick={() => setShowAccountMenu(false)}
                 className="text-xs font-semibold text-[#6d6055] hover:opacity-70"
               >
-                閉じる
+                Close
               </button>
             </div>
           </div>
@@ -234,7 +234,7 @@ export default function Page1() {
         <div className="mb-2 select-none sm:mb-3">
           <Image
             src="/yoyochi3.png"
-            alt="よちヨチ ロゴ"
+            alt="Yochiyochi logo"
             width={960}
             height={360}
             priority
@@ -249,7 +249,7 @@ export default function Page1() {
           >
             <ButtonIcon type="search" />
             <span className="text-base font-semibold leading-none sm:text-2xl">
-              献立チェック
+              Menu Check
             </span>
           </Link>
           {isLoggedIn ? (
@@ -259,19 +259,19 @@ export default function Page1() {
             >
               <ButtonIcon type="edit" />
               <span className="text-base font-semibold leading-none sm:text-2xl">
-                保育園ページ
+                Nursery Page
               </span>
             </Link>
           ) : (
             <Link
               href="/login"
-              aria-label="保育園ページ（ログインが必要です）"
-              title="ログインすると利用できます"
+              aria-label="Nursery page (login required)"
+              title="Log in to use this feature"
               className="flex items-center justify-center gap-2 rounded-3xl bg-[#4b4b4b] px-3 py-4 text-[#d8d8d8] opacity-75 hover:brightness-105 sm:gap-3"
             >
               <ButtonIcon type="edit" />
               <span className="text-base font-semibold leading-none sm:text-2xl">
-                保育園ページ
+                Nursery Page
               </span>
             </Link>
           )}
@@ -279,10 +279,10 @@ export default function Page1() {
 
         <div className="rounded-lg border-[3px] border-[#d4b08d] bg-[#F0E4D8] p-3 sm:p-4">
           <h2 className="mb-3 text-base font-semibold text-[#38322f] sm:text-lg">
-            ヒヤリハット一覧
+            Recent Incidents
           </h2>
 
-          {newsLoading && <p className="text-sm text-[#6d6055] sm:text-base">読み込み中...</p>}
+          {newsLoading && <p className="text-sm text-[#6d6055] sm:text-base">Loading...</p>}
           {newsError && <p className="text-sm text-red-600 sm:text-base">{newsError}</p>}
 
           {!newsLoading && !newsError && (
@@ -311,7 +311,7 @@ export default function Page1() {
                 </ul>
               ) : (
                 <p className="text-sm text-[#6d6055] sm:text-base">
-                  新しいヒヤリハットはありません。
+                  No recent incidents.
                 </p>
               )}
               <div className="mt-3 flex justify-end">
@@ -319,7 +319,7 @@ export default function Page1() {
                   href="/News"
                   className="text-sm font-semibold text-[#393430] hover:opacity-70 sm:text-base"
                 >
-                  すべて見る
+                  See all
                 </Link>
               </div>
             </>

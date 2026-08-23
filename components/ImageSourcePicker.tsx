@@ -15,18 +15,18 @@ export default function ImageSourcePicker({ onPick, onGoSearch }: Props) {
       if (!file) return;
       onPick(file, source);
 
-      // 同じファイルを連続で選べるようにクリア
+      // Clear the value so the same file can be picked again in a row
       e.target.value = "";
     };
 
   return (
     <div className="flex flex-col flex-grow items-center justify-center">
       <div className="flex flex-col gap-8 items-center justify-center flex-grow mt-8">
-        {/* カメラとアルバムを横並び */}
+        {/* Camera and library side by side */}
         <div className="flex gap-8 items-center justify-center">
-          {/* カメラ */}
+          {/* Camera */}
           <div className="flex flex-col items-center gap-3">
-            <p className="text-[#6B5A4E] text-lg font-bold">カメラで撮る</p>
+            <p className="text-[#6B5A4E] text-lg font-bold">Take a photo</p>
             <label
               htmlFor="camera-upload"
               className="w-32 h-32 bg-[#E8DCD0] border border-[#D3C5B9] flex items-center justify-center rounded-xl cursor-pointer"
@@ -43,9 +43,9 @@ export default function ImageSourcePicker({ onPick, onGoSearch }: Props) {
             </label>
           </div>
 
-          {/* ファイル */}
+          {/* File */}
           <div className="flex flex-col items-center gap-3">
-            <p className="text-[#6B5A4E] text-lg font-bold">アルバムから選ぶ</p>
+            <p className="text-[#6B5A4E] text-lg font-bold">Choose from library</p>
             <label
               htmlFor="file-upload"
               className="w-32 h-32 bg-[#E8DCD0] border border-[#D3C5B9] flex items-center justify-center rounded-xl cursor-pointer"
@@ -62,9 +62,9 @@ export default function ImageSourcePicker({ onPick, onGoSearch }: Props) {
           </div>
         </div>
 
-        {/* 検索ボタン */}
+        {/* Search button */}
         <div className="flex flex-col items-center gap-3">
-          <p className="text-[#6B5A4E] text-lg font-bold">検索する</p>
+          <p className="text-[#6B5A4E] text-lg font-bold">Search</p>
           <button
             type="button"
             onClick={onGoSearch}

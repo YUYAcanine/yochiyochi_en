@@ -73,7 +73,7 @@ export default function Page5() {
         setAnswers(Array.isArray(answersJson) ? answersJson : answersJson.items ?? []);
         setMealRecords(Array.isArray(mealsJson) ? mealsJson : mealsJson.items ?? []);
       } catch {
-        setError("データ取得に失敗しました。");
+        setError("Failed to load data.");
       } finally {
         setLoading(false);
       }
@@ -84,7 +84,7 @@ export default function Page5() {
     const map = new Map<string, ChildSummary>();
 
     const ensureChild = (rawName: string) => {
-      const name = rawName?.trim() || "名前未入力";
+      const name = rawName?.trim() || "No name entered";
       if (!map.has(name)) {
         map.set(name, { name, ages: [], noEat: [], meals: [] });
       }
@@ -128,15 +128,15 @@ export default function Page5() {
       <Ribbon
         href="/"
         logoSrc="/yoyochi3-ribbon.png"
-        alt="よちヨチ ロゴ"
+        alt="Yochiyochi logo"
         heightClass="h-20"
         bgClass="bg-[#F0E4D8]"
         logoClassName="h-[4.5rem] w-auto object-contain"
       />
       <div className="pt-20 px-6 pb-10">
-        <h1 className="text-xl font-bold mb-4">園児情報の確認</h1>
+        <h1 className="text-xl font-bold mb-4">Child Information</h1>
 
-        {loading && <p className="text-[#6B5A4E]">読み込み中...</p>}
+        {loading && <p className="text-[#6B5A4E]">Loading...</p>}
         {error && <p className="text-red-600">{error}</p>}
 
         {!loading && !error && (
@@ -144,7 +144,7 @@ export default function Page5() {
             {grouped.map((child) => {
               const growth = child.meals.filter((item) => item.record_type === "growth");
               const hiyari = child.meals.filter((item) => item.record_type === "hiyari");
-              const ageLabel = child.ages.length > 0 ? child.ages.join("、") : "-";
+              const ageLabel = child.ages.length > 0 ? child.ages.join(", ") : "-";
 
               return (
                 <section
@@ -153,15 +153,15 @@ export default function Page5() {
                 >
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <h2 className="text-lg font-bold text-[#5C3A2E]">
-                      園児名：{child.name}
+                      Child: {child.name}
                     </h2>
-                    <span className="text-sm text-[#6B5A4E]">月齢：{ageLabel}</span>
+                    <span className="text-sm text-[#6B5A4E]">Age (months): {ageLabel}</span>
                   </div>
 
                   <div className="mt-4 grid gap-4">
                     <div>
                       <h3 className="text-sm font-semibold text-[#6B5A4E]">
-                        食べられない食品
+                        Foods they can&apos;t eat
                       </h3>
                       {child.noEat.length > 0 ? (
                         <ul className="mt-2 space-y-2">
@@ -175,7 +175,7 @@ export default function Page5() {
                               </div>
                               {item.note && (
                                 <div className="text-xs text-[#6B5A4E] mt-1">
-                                  備考：{item.note}
+                                  Note: {item.note}
                                 </div>
                               )}
                               <div className="text-xs text-[#8A776A] mt-1">
@@ -185,12 +185,12 @@ export default function Page5() {
                           ))}
                         </ul>
                       ) : (
-                        <p className="mt-2 text-sm text-[#8A776A]">登録がありません。</p>
+                        <p className="mt-2 text-sm text-[#8A776A]">Nothing registered.</p>
                       )}
                     </div>
 
                     <div>
-                      <h3 className="text-sm font-semibold text-[#6B5A4E]">成長キャッチ</h3>
+                      <h3 className="text-sm font-semibold text-[#6B5A4E]">Growth Log</h3>
                       {growth.length > 0 ? (
                         <ul className="mt-2 space-y-2">
                           {growth.map((item) => (
@@ -211,12 +211,12 @@ export default function Page5() {
                           ))}
                         </ul>
                       ) : (
-                        <p className="mt-2 text-sm text-[#8A776A]">記録がありません。</p>
+                        <p className="mt-2 text-sm text-[#8A776A]">No records yet.</p>
                       )}
                     </div>
 
                     <div>
-                      <h3 className="text-sm font-semibold text-[#6B5A4E]">ヒヤリハット</h3>
+                      <h3 className="text-sm font-semibold text-[#6B5A4E]">Incidents</h3>
                       {hiyari.length > 0 ? (
                         <ul className="mt-2 space-y-2">
                           {hiyari.map((item) => (
@@ -237,7 +237,7 @@ export default function Page5() {
                           ))}
                         </ul>
                       ) : (
-                        <p className="mt-2 text-sm text-[#8A776A]">記録がありません。</p>
+                        <p className="mt-2 text-sm text-[#8A776A]">No records yet.</p>
                       )}
                     </div>
                   </div>
@@ -247,7 +247,7 @@ export default function Page5() {
 
             {grouped.length === 0 && (
               <div className="rounded-2xl border border-[#E8DCD0] bg-white p-6 text-center text-[#8A776A]">
-                登録データがありません。
+                No data registered.
               </div>
             )}
           </div>
@@ -258,13 +258,13 @@ export default function Page5() {
             href="/"
             className="inline-flex items-center justify-center rounded-xl border border-[#D6C2B4] bg-[#F5EDE6] px-5 py-2 font-semibold text-[#6B5A4E] shadow-sm transition hover:bg-[#E7DBCF]"
           >
-            ホームに戻る
+            Back to Home
           </Link>
           <Link
             href="/Register"
             className="inline-flex items-center justify-center rounded-xl bg-brand px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-brand-hover"
           >
-            給食記録に戻る
+            Back to Nursery Records
           </Link>
         </div>
       </div>

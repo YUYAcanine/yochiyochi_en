@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   const password = typeof body?.password === "string" ? body.password : "";
 
   if (!memberId || !password) {
-    return NextResponse.json({ error: "会員IDとパスワードを入力してください。" }, { status: 400 });
+    return NextResponse.json({ error: "Please enter a member ID and password." }, { status: 400 });
   }
 
   if (!isPasswordValid(password)) {
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   }
   if (existingGarden) {
     return NextResponse.json(
-      { error: "この会員IDは既に登録されています。" },
+      { error: "This member ID is already registered." },
       { status: 409 }
     );
   }
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
   if (createUserError || !createdUser.user) {
     return NextResponse.json(
-      { error: createUserError?.message ?? "ユーザー作成に失敗しました。" },
+      { error: createUserError?.message ?? "Failed to create user." },
       { status: 500 }
     );
   }
@@ -55,10 +55,10 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (gardenInsertError || !garden) {
-    // ユーザーだけ作成されて園が作れなかった場合はユーザーも巻き戻す
+    // If only the user was created but the garden creation failed, roll back the user too
     await supabaseAdmin.auth.admin.deleteUser(createdUser.user.id);
     return NextResponse.json(
-      { error: gardenInsertError?.message ?? "園の作成に失敗しました。" },
+      { error: gardenInsertError?.message ?? "Failed to create the garden." },
       { status: 500 }
     );
   }

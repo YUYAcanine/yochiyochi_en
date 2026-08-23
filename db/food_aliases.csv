@@ -1,0 +1,156 @@
+id,food_id,alias
+156,1,rice
+157,2,toast
+158,3,saba
+159,3,blue mackerel
+160,4,sake salmon
+161,4,silver salmon
+162,5,chicken meat
+163,5,poultry
+164,5,chicken
+165,5,hen
+166,5,fowl
+167,6,ground pork
+168,6,pork meat
+169,6,pork
+170,6,piggy
+171,6,hog
+172,7,tuna fish
+173,8,asari clams
+174,9,jako
+175,10,onions
+176,10,yellow onion
+177,10,white onion
+178,11,carrots
+179,11,baby carrot
+180,12,potatoes
+181,12,spud
+182,12,russet potato
+183,13,cabbages
+184,13,green cabbage
+185,14,japanese mustard spinach
+186,14,komatsuna greens
+187,15,pak choi
+188,15,chinese cabbage
+189,15,qing geng cai
+190,16,enoki mushrooms
+191,16,golden needle mushroom
+192,17,snow pea shoots
+193,17,pea sprouts
+194,18,eggplants
+195,18,aubergine
+196,18,nasu
+197,19,squash
+198,19,kabocha
+199,19,pumpkin squash
+200,20,capsicum
+201,20,green pepper
+202,20,paprika
+203,21,chinese chives
+204,21,nira
+205,23,string beans
+206,24,shimeji mushrooms
+207,25,aburaage
+208,25,thin fried tofu
+209,25,fried tofu pouch
+210,25,tofu skin
+211,26,molokhia leaves
+212,27,goya
+213,28,tomatoes
+214,29,cucumbers
+215,29,japanese cucumber
+216,30,scallion
+217,31,soy beans
+218,31,natto (fermented soybeans)
+219,31,soya beans
+220,32,atsuage
+221,32,thick fried tofu
+222,32,namaage
+223,32,deep-fried tofu block
+224,32,fried tofu steak
+225,32,tofu cutlet
+226,34,kintoki beans
+227,34,red kidney beans
+228,35,eggs
+229,35,hen's egg
+230,36,sesame
+231,38,kanpyo strips
+232,39,sweet corn
+233,39,maize
+234,39,corn kernels
+235,40,bamboo shoots
+236,40,takenoko
+237,41,prunes
+238,42,aonori flakes
+239,42,green seaweed flakes
+240,42,dried green laver
+241,42,sea lettuce flakes
+242,43,seaweed sheet
+243,44,watermelons
+244,44,suika
+245,45,melons
+246,46,apples
+247,46,ringo
+248,47,grape
+249,48,shiratama dango
+250,49,hard candy
+251,49,sweets
+252,51,quail eggs
+253,51,japanese quail egg
+254,51,quail
+255,51,small quail egg
+256,52,baby cheese
+257,53,bananas
+258,54,niboshi
+259,54,dried anchovies
+260,55,sliced ham
+261,57,wiener
+262,57,frankfurter
+263,58,chikuwa fish stick
+264,59,fish cake loaf
+265,60,daikon
+266,60,japanese radish
+267,61,chinese cabbage
+268,61,hakusai
+269,62,spinach leaves
+270,62,baby spinach
+271,62,leaf spinach
+272,63,broccoli florets
+273,63,cauliflower
+274,64,lotus roots
+275,64,renkon
+276,65,gobo root
+277,66,taro root
+278,66,satoimo
+279,66,japanese taro
+280,66,sticky taro
+281,67,sweet potatoes
+282,67,satsumaimo
+283,67,yam
+284,68,moyashi
+285,69,peas
+286,71,mandarins
+287,71,satsuma orange
+288,73,pineapples
+289,76,umeboshi
+290,76,japanese pickled plum
+291,76,ume
+292,77,shiitake mushrooms
+293,77,japanese black mushroom
+294,78,celery stalk
+295,79,raw honey
+296,80,peanut
+297,81,mini tomato
+298,82,rice cake
+299,84,mixed nuts
+300,85,cherries
+301,86,konnyaku
+302,86,devil's tongue jelly
+303,87,noodle
+304,88,cornflakes
+305,89,snacks
+306,89,treats
+307,89,confectionery
+308,89,sweet treats
+309,5,chicken thigh
+310,5,chicken breast

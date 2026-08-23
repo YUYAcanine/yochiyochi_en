@@ -8,7 +8,7 @@ const isRecordType = (value: unknown): value is "growth" | "hiyari" =>
 
 export async function POST() {
   return NextResponse.json(
-    { error: "このAPIの新規登録は廃止されました。/api/accidents を利用してください。" },
+    { error: "Creating new entries via this API has been discontinued. Please use /api/accidents." },
     { status: 410 }
   );
 }
@@ -16,7 +16,7 @@ export async function POST() {
 export async function GET(req: NextRequest) {
   try {
     const ctx = await getAuthedContext(req);
-    if (!ctx) return NextResponse.json({ error: "ログインが必要です" }, { status: 401 });
+    if (!ctx) return NextResponse.json({ error: "Login is required" }, { status: 401 });
     const { supabase, gardenId } = ctx;
 
     const { searchParams } = new URL(req.url);
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
 
     if (childError) {
       console.error(childError);
-      return NextResponse.json({ error: "取得に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
     }
 
     const childRows = childData ?? [];
@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
 
     if (accidentError) {
       console.error(accidentError);
-      return NextResponse.json({ error: "取得に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
     }
 
     const accidents = accidentData ?? [];
@@ -102,6 +102,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ items });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "取得に失敗しました" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   }
 }

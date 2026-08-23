@@ -4,23 +4,23 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { authedFetch } from "@/lib/apiFetch";
 
-/* ---------- 型と定数 ---------- */
+/* ---------- Types and constants ---------- */
 export type PhaseKey = "phase1" | "phase2" | "phase3" | "phase4" | "phase5";
 
 export const PHASE_LABELS: Record<PhaseKey, string> = {
-  phase1: "離乳初期",
-  phase2: "離乳中期",
-  phase3: "離乳後期",
-  phase4: "完了期",
-  phase5: "幼児期",
+  phase1: "Early Weaning",
+  phase2: "Mid Weaning",
+  phase3: "Late Weaning",
+  phase4: "Completion Stage",
+  phase5: "Toddler Stage",
 };
 
 export const PHASE_AGE_LABELS: Record<PhaseKey, string> = {
-  phase1: "5〜6か月目安",
-  phase2: "7〜8か月目安",
-  phase3: "9〜11か月目安",
-  phase4: "12〜18か月目安",
-  phase5: "18か月以降目安",
+  phase1: "approx. 5-6 months",
+  phase2: "approx. 7-8 months",
+  phase3: "approx. 9-11 months",
+  phase4: "approx. 12-18 months",
+  phase5: "approx. 18+ months",
 };
 
 const PHASE_ITEMS: { key: PhaseKey; label: string; sub?: string }[] = (
@@ -77,7 +77,7 @@ const ChecklistContext = createContext<ChecklistContextType | undefined>(undefin
 
 /* ---------- Provider ---------- */
 export function ChecklistProvider({ children }: { children: React.ReactNode }) {
-  const [phase, setPhaseState] = useState<PhaseKey>("phase1"); // SSR初期値
+  const [phase, setPhaseState] = useState<PhaseKey>("phase1"); // SSR initial value
   const [open, setOpen] = useState<boolean>(false);
   const [memberId, setMemberId] = useState<string | null>(null);
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
@@ -189,7 +189,7 @@ export function useChecklist() {
   return ctx;
 }
 
-/* ---------- 右上固定ボタン（濃い茶＋ハンバーガー） ---------- */
+/* ---------- Fixed top-right button (dark brown + hamburger) ---------- */
 export function ChecklistButton() {
   const { open, setOpen } = useChecklist();
   return (
@@ -221,11 +221,11 @@ export function ChecklistButton() {
   );
 }
 
-/* ---------- 右スライドドロワー（選択しても閉じない） ---------- */
+/* ---------- Right slide-in drawer (stays open on selection) ---------- */
 export function ChecklistPanel() {
   const { phase, setPhase, open, setOpen, childMode, setChildMode, children, memberId, childrenLoading } =
     useChecklist();
-  const heading = "時期を選択"; // ← 現在の選択表示をなくす
+  const heading = "Select Stage"; // Intentionally not showing the current selection
 
   const onBackdropClick: React.MouseEventHandler<HTMLDivElement> = (e) => {
     if ((e.target as HTMLElement).dataset?.backdrop === "true") {
@@ -235,20 +235,20 @@ export function ChecklistPanel() {
 
   const onSelect = (key: PhaseKey) => {
     setPhase(key);
-    // ← 自動で閉じない：setOpen(false) は削除
+    // Intentionally not calling setOpen(false) so the drawer stays open
   };
 
-  // カラーパレット（薄い順）
-  const BG_PANEL = "bg-[#FAF8F6]";     // パネル背景：さらに薄い茶色
-  const BG_ITEM  = "bg-[#F0E4D8]";     // 選択肢：薄い茶色
-  const BG_ACTIVE= "bg-[#E6D6C9]";     // 選択中：少し濃い茶色
-  const TXT_HEAD = "text-[#4D3F36]";   // 見出し＆本文の濃い茶
+  // Color palette (lightest first)
+  const BG_PANEL = "bg-[#FAF8F6]";     // panel background: lightest brown
+  const BG_ITEM  = "bg-[#F0E4D8]";     // option: light brown
+  const BG_ACTIVE= "bg-[#E6D6C9]";     // selected: slightly darker brown
+  const TXT_HEAD = "text-[#4D3F36]";   // heading & body: dark brown
   const headerDescription =
-    memberId && childMode ? "表示モードを選択してください。" : "乳幼児の段階を選択してください。";
+    memberId && childMode ? "Select a display mode." : "Select the infant's weaning stage.";
   const isMember = Boolean(memberId);
   const handleSelectChildMode = () => {
     if (!isMember) {
-      alert("この機能は会員限定です");
+      alert("This feature is for members only");
       return;
     }
     setChildMode(true);
@@ -275,21 +275,21 @@ export function ChecklistPanel() {
 
         <div className="p-4 overflow-y-auto h-[calc(100%-3.5rem)]">
           <div>
-            <h4 className={`text-base font-semibold ${TXT_HEAD}`}>表示モード</h4>
+            <h4 className={`text-base font-semibold ${TXT_HEAD}`}>Display Mode</h4>
             <p className="text-xs text-[#6B5A4E] mt-1">
-              園児モードでは登録済みの食べられない食品のみ緑で表示します。
+              Child mode highlights only each registered child&apos;s restricted foods in green.
             </p>
 
             {childrenLoading && isMember && (
-              <p className="text-xs text-[#6B5A4E] mt-3">読み込み中...</p>
+              <p className="text-xs text-[#6B5A4E] mt-3">Loading...</p>
             )}
 
             {!childrenLoading && isMember && children.length === 0 && (
-              <p className="text-xs text-[#6B5A4E] mt-3">園児の登録がありません。</p>
+              <p className="text-xs text-[#6B5A4E] mt-3">No children registered.</p>
             )}
 
             {!isMember && (
-              <p className="text-xs text-[#6B5A4E] mt-3">園児モードは会員限定です。</p>
+              <p className="text-xs text-[#6B5A4E] mt-3">Child mode is for members only.</p>
             )}
 
             <div className="mt-3 space-y-2">
@@ -304,7 +304,7 @@ export function ChecklistPanel() {
                   onChange={() => setChildMode(false)}
                   className="accent-[#5C3A2E]"
                 />
-                <span className={`font-medium ${TXT_HEAD}`}>乳児期別表示</span>
+                <span className={`font-medium ${TXT_HEAD}`}>By Weaning Stage</span>
               </label>
               <label
                 className={`flex items-center gap-3 rounded-xl p-3 cursor-pointer border bg-[#E6F4EA] border-[#9FD3AE] hover:brightness-95 ${
@@ -320,7 +320,7 @@ export function ChecklistPanel() {
                   disabled={!isMember}
                   className="accent-[#2F7D4C]"
                 />
-                <span className={`font-medium ${TXT_HEAD}`}>園児モード</span>
+                <span className={`font-medium ${TXT_HEAD}`}>Child Mode</span>
               </label>
             </div>
           </div>

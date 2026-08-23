@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
           requests: [
             {
               image: { content: image },
-              // ここを TEXT_DETECTION から DOCUMENT_TEXT_DETECTION に
+              // Changed from TEXT_DETECTION to DOCUMENT_TEXT_DETECTION here
               features: [{ type: "DOCUMENT_TEXT_DETECTION" }],
             },
           ],

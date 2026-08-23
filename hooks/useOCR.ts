@@ -7,14 +7,15 @@ export type Vertex = { x: number; y: number };
 export type BoundingBox = { description: string; boundingPoly: { vertices: Vertex[] } };
 
 /**
- * 画像 → Vision API OCR → BoundingBox 配列
- * object-contain の余白を考慮するため、等倍 scale と offsetX/offsetY を返す
+ * Image -> Vision API OCR -> BoundingBox array
+ * Returns a uniform scale and offsetX/offsetY to account for the
+ * letterboxing margins produced by object-contain
  */
 export function useOCR(imgSrc: string | null) {
   const [boxes, setBoxes] = useState<BoundingBox[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // ★ 等倍スケール + レターボックス余白
+  // Uniform scale + letterbox margins
   const [scale, setScale] = useState<{ scale: number; offsetX: number; offsetY: number }>({
     scale: 1,
     offsetX: 0,
@@ -61,7 +62,7 @@ export function useOCR(imgSrc: string | null) {
     run();
   }, [imgSrc]);
 
-  /** object-contain と同じ計算で、scale と左右/上下の余白を算出 */
+  /** Computes scale and the left/right and top/bottom margins using the same logic as object-contain */
   const onImgLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const el = e.currentTarget;
     const cw = el.clientWidth;
@@ -69,7 +70,7 @@ export function useOCR(imgSrc: string | null) {
     const nw = el.naturalWidth || 1;
     const nh = el.naturalHeight || 1;
 
-    const s = Math.min(cw / nw, ch / nh); // 収まる倍率
+    const s = Math.min(cw / nw, ch / nh); // scale that fits within the container
     const dw = nw * s;
     const dh = nh * s;
 

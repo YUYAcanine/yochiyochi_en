@@ -1,14 +1,14 @@
 /**
  * OcrBottomDrawer
  *
- * OCRで選択された文字に対する説明を表示する下部ドロワー。
+ * Bottom drawer that shows a description for text selected via OCR.
  *
- * - フェーズ別の注意文言の表示
- * - 事故情報表示ボタンの提供
+ * - Shows phase-specific caution notes
+ * - Provides a button to show incident info
  *
- * このコンポーネント自身は状態を持たず、
- * 表示内容や開閉制御はすべて props 経由で受け取る。
- * 実体は既存の BottomDrawer コンポーネントをラップしている。
+ * This component holds no state of its own;
+ * all displayed content and open/close control are received via props.
+ * It wraps the existing BottomDrawer component.
 **/
 
 "use client";

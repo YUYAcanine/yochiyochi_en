@@ -2,8 +2,9 @@
 
 import { supabase } from "@/lib/supabaseClient";
 
-// ログイン中ユーザーが所属するgardens.idを取得する（未ログインならnull）。
-// 旧実装のtoGardenId(memberId)（会員IDの数字部分を流用する方式）を置き換える。
+// Gets the gardens.id that the logged-in user belongs to (null if not logged in).
+// Replaces the old implementation's toGardenId(memberId), which reused the numeric
+// part of the member ID.
 export const getCurrentGardenId = async (): Promise<string | null> => {
   const { data: sessionData } = await supabase.auth.getSession();
   const userId = sessionData.session?.user.id;

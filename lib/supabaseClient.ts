@@ -6,10 +6,10 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error(
-    "NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY が設定されていません（.env.local を確認してください）"
+    "NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY is not set (check your .env.local)"
   );
 }
 
-// ブラウザで使う想定のクライアント。ログインするとセッション（JWT）が
-// localStorage に保存され、以降のリクエストに自動で付与される。
+// Client intended for use in the browser. After logging in, the session (JWT)
+// is stored in localStorage and automatically attached to subsequent requests.
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);

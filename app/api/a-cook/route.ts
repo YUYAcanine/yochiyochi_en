@@ -21,14 +21,14 @@ const toText = (v: unknown): string | null => {
 export async function POST(req: NextRequest) {
   try {
     const ctx = await getAuthedContext(req);
-    if (!ctx) return NextResponse.json({ error: "ログインが必要です" }, { status: 401 });
+    if (!ctx) return NextResponse.json({ error: "Login is required" }, { status: 401 });
     const { supabase, gardenId } = ctx;
 
     const body = (await req.json()) as Payload;
     const foodName = toText(body.food_name);
 
     if (!foodName) {
-      return NextResponse.json({ error: "食材名を入力してください" }, { status: 400 });
+      return NextResponse.json({ error: "Please enter a food name" }, { status: 400 });
     }
 
     const updateValues = {
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       phase5: toText(body.phase5),
     };
 
-    // 共通食材（garden_id is null）に同名があればそれを使う
+    // If a common food (garden_id is null) with the same name exists, use it
     const { data: globalFood, error: globalFoodError } = await supabase
       .from("foods")
       .select("id")
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
 
     if (globalFoodError) {
       console.error(globalFoodError);
-      return NextResponse.json({ error: "保存に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Save failed" }, { status: 500 });
     }
 
     let foodId = globalFood?.id ?? null;
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
 
       if (gardenFoodError) {
         console.error(gardenFoodError);
-        return NextResponse.json({ error: "保存に失敗しました" }, { status: 500 });
+        return NextResponse.json({ error: "Save failed" }, { status: 500 });
       }
 
       foodId = gardenFood?.id ?? null;
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
 
         if (insertFoodError || !inserted) {
           console.error(insertFoodError);
-          return NextResponse.json({ error: "食材の登録に失敗しました" }, { status: 500 });
+          return NextResponse.json({ error: "Failed to register the food" }, { status: 500 });
         }
         foodId = inserted.id;
       }
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
 
     if (existingMethodError) {
       console.error(existingMethodError);
-      return NextResponse.json({ error: "保存に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Save failed" }, { status: 500 });
     }
 
     if (existingMethod?.id != null) {
@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
 
       if (updateError) {
         console.error(updateError);
-        return NextResponse.json({ error: "保存に失敗しました" }, { status: 500 });
+        return NextResponse.json({ error: "Save failed" }, { status: 500 });
       }
 
       return NextResponse.json({ ok: true, food_id: foodId });
@@ -122,12 +122,12 @@ export async function POST(req: NextRequest) {
 
     if (insertMethodError) {
       console.error(insertMethodError);
-      return NextResponse.json({ error: "保存に失敗しました" }, { status: 500 });
+      return NextResponse.json({ error: "Save failed" }, { status: 500 });
     }
 
     return NextResponse.json({ ok: true, food_id: foodId });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "保存に失敗しました" }, { status: 500 });
+    return NextResponse.json({ error: "Save failed" }, { status: 500 });
   }
 }

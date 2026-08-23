@@ -62,19 +62,19 @@ export default function BottomDrawer({
           open ? "translate-y-0" : "translate-y-full"
         }`}
         role="dialog"
-        aria-label="説明"
+        aria-label="Description"
       >
         <div className="mx-auto max-w-3xl rounded-t-2xl border border-[#E3D4C7] bg-[#F5EDE6] shadow-2xl p-4">
         <div className="flex items-center justify-between mb-2">
           <div className="text-sm text-zinc-700">
-            食材名：<span className="font-medium text-zinc-900">{openText}</span>
+            Food: <span className="font-medium text-zinc-900">{openText}</span>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="inline-flex h-10 w-10 items-center justify-center rounded-lg border-2 border-[#D8C7B8]
                        bg-[#EFE4DA] text-2xl font-semibold leading-none text-[#5B4A3F] transition hover:bg-[#E6D8CC]"
-            aria-label="閉じる"
+            aria-label="Close"
           >
             ×
           </button>
@@ -85,7 +85,7 @@ export default function BottomDrawer({
             description={cookDescription}
             phase={phase}
             variant={cookVariant === "none" ? "ok" : cookVariant}
-            title="調理情報"
+            title="Cooking Info"
           />
         )}
 
@@ -98,7 +98,7 @@ export default function BottomDrawer({
                     onClick={cookEditor.onStart}
                     className="text-[#6b5a4e] underline underline-offset-4 font-semibold transition-opacity duration-200 hover:opacity-70 py-1"
                   >
-                    調理方法を編集
+                    Edit cooking method
                   </button>
                 </div>
               )}
@@ -110,7 +110,7 @@ export default function BottomDrawer({
             description={childDescription}
             phase={phase}
             variant="child"
-            title="園児情報"
+            title="Child Info"
             showPhase={false}
           />
         )}
@@ -123,7 +123,7 @@ export default function BottomDrawer({
               className="text-[#6b5a4e] underline underline-offset-4 
                          font-semibold transition-opacity duration-200 hover:opacity-70 py-1"
             >
-              事故情報を見る
+              View incident info
             </button>
           </div>
         )}
@@ -131,14 +131,14 @@ export default function BottomDrawer({
         {showAccidentInfo && (
           <div className="mt-4 pt-4 border-t border-[#E8DCD0]">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-[#5C3A2E]">事故情報</h3>
+              <h3 className="text-lg font-semibold text-[#5C3A2E]">Incident Info</h3>
               <button
                 type="button"
                 onClick={() => onHideAccidentInfo && onHideAccidentInfo()}
                 className="text-[#6b5a4e] text-decoration-underline text-underline-offset-4
                            font-semibold transition-opacity duration-200 hover:opacity-70"
               >
-                閉じる
+                Close
               </button>
             </div>
             <div className="bg-[#F5EDE6] rounded-lg p-4 border border-[#E3D4C7]">
@@ -148,7 +148,7 @@ export default function BottomDrawer({
                     className="h-5 w-5 animate-spin rounded-full border-2 border-[#D8C7B8] border-t-[#5C3A2E]"
                     aria-hidden="true"
                   />
-                  <span className="text-sm">読み込み中...</span>
+                  <span className="text-sm">Loading...</span>
                 </div>
               ) : (
                 <div className="text-[#4D3F36] leading-relaxed whitespace-pre-wrap">
@@ -165,12 +165,12 @@ export default function BottomDrawer({
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6"
           role="dialog"
-          aria-label="調理方法を編集"
+          aria-label="Edit cooking method"
         >
           <div className="w-full max-w-3xl rounded-2xl border border-[#E8DCD0] bg-white shadow-2xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-[#5C3A2E]">
-                食材名：{openText}
+                Food: {openText}
               </h3>
             </div>
 
@@ -178,8 +178,8 @@ export default function BottomDrawer({
               <table className="w-full text-sm border-collapse">
                 <thead>
                   <tr className="text-left text-[#6B5A4E]">
-                    <th className="pb-2 pr-3 font-semibold whitespace-nowrap">乳児期</th>
-                    <th className="pb-2 font-semibold">調理方法</th>
+                    <th className="pb-2 pr-3 font-semibold whitespace-nowrap">Weaning Stage</th>
+                    <th className="pb-2 font-semibold">Cooking Method</th>
                   </tr>
                 </thead>
                 <tbody className="align-top">
@@ -208,7 +208,7 @@ export default function BottomDrawer({
                 onClick={cookEditor.onCancel}
                 className="rounded-lg border border-[#D6C2B4] bg-[#F5EDE6] px-4 py-2 text-sm font-semibold text-[#6B5A4E] hover:bg-[#E7DBCF]"
               >
-                キャンセル
+                Cancel
               </button>
               <button
                 type="button"
@@ -216,7 +216,7 @@ export default function BottomDrawer({
                 disabled={cookEditor.saving}
                 className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover disabled:opacity-60"
               >
-                {cookEditor.saving ? "保存中..." : "保存する"}
+                {cookEditor.saving ? "Saving..." : "Save"}
               </button>
             </div>
             {cookEditor.message && (

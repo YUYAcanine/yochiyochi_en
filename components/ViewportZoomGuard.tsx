@@ -8,9 +8,9 @@ const isFormField = (target: EventTarget | null): target is HTMLElement =>
   (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT");
 
 /**
- * 一部のモバイルブラウザはviewportのuser-scalable=noを無視し、
- * 入力欄フォーカス時に自動でズームすることがある。
- * 入力が終わった（blurした）タイミングでviewportを再設定し、元の倍率に戻す。
+ * Some mobile browsers ignore the viewport's user-scalable=no
+ * and auto-zoom when an input field is focused.
+ * Once input ends (on blur), reset the viewport to restore the original scale.
  */
 export default function ViewportZoomGuard() {
   useEffect(() => {

@@ -30,7 +30,7 @@ export default function PhaseDescriptionBox({
 }: Props) {
   if (!description) return null;
   const colorClass = classesByVariant[variant] ?? classesByVariant.ok;
-  const label = title ?? (showPhase && phase ? `時期: ${phase}` : "");
+  const label = title ?? (showPhase && phase ? `Stage: ${phase}` : "");
 
   return (
     <div className={`w-full p-2 border rounded mt-2 ${colorClass}`}>

@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
 
-// 認証が必要な自前APIを呼ぶ際、現在のSupabaseセッションのアクセストークンを
-// Authorizationヘッダーに自動で付与するfetchラッパー。
+// A fetch wrapper that automatically attaches the current Supabase session's
+// access token to the Authorization header when calling our own APIs that require authentication.
 export const authedFetch = async (input: string, init: RequestInit = {}): Promise<Response> => {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;

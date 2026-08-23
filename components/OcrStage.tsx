@@ -1,15 +1,16 @@
 /**
  * OcrStage
  *
- * OCR対象画像と、検出された文字領域（Box）を表示するステージコンポーネント。
+ * Stage component that displays the OCR target image and the detected
+ * text regions (boxes).
  *
- * - 画像のズーム・パン操作（react-zoom-pan-pinch）
- * - OCR文字領域の表示とタップ検出
- * - フェーズ選択UI（Checklist）
- * - 「別の画像にする」操作
+ * - Image zoom/pan operation (react-zoom-pan-pinch)
+ * - Displays OCR text regions and detects taps
+ * - Phase selection UI (Checklist)
+ * - "Use a different image" action
  *
- * OCR処理や文字分類ロジックは持たず、
- * 表示制御とユーザー操作の通知のみを行う。
+ * Holds no OCR processing or text classification logic;
+ * only handles display control and notifying user actions.
  **/
 
 "use client";
@@ -94,7 +95,7 @@ export default function OcrStage({
                        shadow-md backdrop-blur-sm bg-white/85 
                        pointer-events-auto"
           >
-            別の画像にする
+            Use a different image
           </button>
         </div>
       </div>

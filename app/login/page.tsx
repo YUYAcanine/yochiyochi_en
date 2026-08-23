@@ -21,7 +21,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   const getFriendlyErrorMessage = (action: "login" | "register", err: unknown) => {
-    const base = action === "login" ? "ログイン" : "登録";
+    const base = action === "login" ? "Login" : "Registration";
     if (err && typeof err === "object") {
       const maybe = err as Partial<{
         message: string;
@@ -33,26 +33,26 @@ export default function LoginPage() {
         (value) => typeof value === "string" && value.trim().length > 0
       );
       if (parts.length > 0) {
-        return `${base}に失敗しました: ${parts.join(" / ")}`;
+        return `${base} failed: ${parts.join(" / ")}`;
       }
     }
     if (err instanceof Error && err.message) {
-      return `${base}に失敗しました: ${err.message}`;
+      return `${base} failed: ${err.message}`;
     }
-    return `${base}に失敗しました。時間をおいて再度お試しください。`;
+    return `${base} failed. Please wait a moment and try again.`;
   };
 
   const handleLogin = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     if (!memberId.trim() || !passward.trim()) {
-      setStatus("会員IDとパスワードを入力してください。");
+      setStatus("Please enter your Member ID and password.");
       setStatusIsError(true);
       return;
     }
 
     setIsLoading(true);
     setLoadingAction("login");
-    setStatus("ログイン情報を確認しています…");
+    setStatus("Checking your login information…");
     setStatusIsError(false);
 
     try {
@@ -62,7 +62,7 @@ export default function LoginPage() {
       });
 
       if (signInError || !data.session) {
-        setStatus("会員IDまたはパスワードが間違っています。");
+        setStatus("Member ID or password is incorrect.");
         setStatusIsError(true);
         if (typeof window !== "undefined") {
           localStorage.removeItem("yochiLoggedIn");
@@ -72,7 +72,7 @@ export default function LoginPage() {
         return;
       }
 
-      setStatus("ログインしました。");
+      setStatus("Logged in.");
       setStatusIsError(false);
       if (typeof window !== "undefined") {
         localStorage.setItem("yochiLoggedIn", "true");
@@ -103,7 +103,7 @@ export default function LoginPage() {
     e?.preventDefault();
 
     if (!regMemberId.trim() || !regPassword.trim() || !regPasswordConfirm.trim()) {
-      setStatus("会員ID・パスワード・パスワード（確認）を入力してください。");
+      setStatus("Please enter a Member ID, password, and password confirmation.");
       setStatusIsError(true);
       return;
     }
@@ -115,14 +115,14 @@ export default function LoginPage() {
     }
 
     if (regPassword !== regPasswordConfirm) {
-      setStatus("パスワードが一致しません。もう一度入力してください。");
+      setStatus("Passwords do not match. Please try again.");
       setStatusIsError(true);
       return;
     }
 
     setIsLoading(true);
     setLoadingAction("register");
-    setStatus("登録処理を実行しています…");
+    setStatus("Processing your registration…");
     setStatusIsError(false);
 
     try {
@@ -134,7 +134,7 @@ export default function LoginPage() {
       const body = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setStatus(body?.error ?? "登録に失敗しました。");
+        setStatus(body?.error ?? "Registration failed.");
         setStatusIsError(true);
         return;
       }
@@ -145,7 +145,7 @@ export default function LoginPage() {
       });
 
       if (signInError || !signInData.session) {
-        setStatus("登録は完了しましたが、自動ログインに失敗しました。ログインし直してください。");
+        setStatus("Registration complete, but automatic login failed. Please log in again.");
         setStatusIsError(true);
         return;
       }
@@ -172,33 +172,33 @@ export default function LoginPage() {
         {!isRegisterOpen ? (
           <>
             <div className="space-y-2 text-center">
-              <h1 className="text-2xl font-bold text-[#3A2C25]">会員ログイン</h1>
-              <p className="text-sm text-[#6B5A4E]">登録済みの会員IDとパスワードを入力してください</p>
+              <h1 className="text-2xl font-bold text-[#3A2C25]">Member Login</h1>
+              <p className="text-sm text-[#6B5A4E]">Please enter your registered Member ID and password</p>
             </div>
 
             <form className="space-y-4" onSubmit={handleLogin}>
               <label className="block text-sm font-semibold text-[#4D3F36]">
-                会員ID
+                Member ID
                 <input
                   type="text"
                   name="memberId"
                   value={memberId}
                   onChange={(e) => setMemberId(e.target.value)}
                   className="mt-2 w-full rounded-xl border border-[#D3C5B9] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
-                  placeholder="例：A123456"
+                  placeholder="e.g. A123456"
                   required
                 />
               </label>
 
               <label className="block text-sm font-semibold text-[#4D3F36]">
-                パスワード
+                Password
                 <input
                   type="password"
                   name="passward"
                   value={passward}
                   onChange={(e) => setPassward(e.target.value)}
                   className="mt-2 w-full rounded-xl border border-[#D3C5B9] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
-                  placeholder="パスワード"
+                  placeholder="Password"
                   required
                 />
               </label>
@@ -208,7 +208,7 @@ export default function LoginPage() {
                 disabled={isLoading}
                 className="w-full rounded-xl bg-brand text-white font-semibold py-3 transition hover:bg-brand-hover disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {isLoading && loadingAction === "login" ? "確認中..." : "ログイン"}
+                {isLoading && loadingAction === "login" ? "Checking..." : "Log in"}
               </button>
             </form>
 
@@ -218,56 +218,56 @@ export default function LoginPage() {
                 onClick={() => handleToggleRegister(true)}
                 className="text-[#6B5A4E] font-semibold underline"
               >
-                新規登録へ
+                Go to sign up
               </button>
             </div>
           </>
         ) : (
           <>
             <div className="space-y-2 text-center">
-              <h1 className="text-2xl font-bold text-[#3A2C25]">新規登録</h1>
-              <p className="text-sm text-[#6B5A4E]">会員IDとパスワードを入力してください</p>
+              <h1 className="text-2xl font-bold text-[#3A2C25]">Sign Up</h1>
+              <p className="text-sm text-[#6B5A4E]">Please enter a Member ID and password</p>
             </div>
 
             <form className="space-y-4" onSubmit={handleRegisterSubmit}>
               <label className="block text-sm font-semibold text-[#4D3F36]">
-                会員ID
+                Member ID
                 <input
                   type="text"
                   name="regMemberId"
                   value={regMemberId}
                   onChange={(e) => setRegMemberId(e.target.value)}
                   className="mt-2 w-full rounded-xl border border-[#D3C5B9] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
-                  placeholder="例：A123456"
+                  placeholder="e.g. A123456"
                   required
                 />
               </label>
 
               <label className="block text-sm font-semibold text-[#4D3F36]">
-                パスワード
+                Password
                 <input
                   type="password"
                   name="regPassword"
                   value={regPassword}
                   onChange={(e) => setRegPassword(e.target.value)}
                   className="mt-2 w-full rounded-xl border border-[#D3C5B9] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
-                  placeholder="8文字以上・2種類以上の文字種"
+                  placeholder="8+ characters, 2+ character types"
                   required
                 />
                 <span className="mt-1 block text-xs font-normal text-[#8A7B6E]">
-                  8文字以上、かつ英大文字・英小文字・数字・記号のうち2種類以上を組み合わせてください。
+                  Use at least 8 characters, combining 2 or more of: uppercase letters, lowercase letters, numbers, and symbols.
                 </span>
               </label>
 
               <label className="block text-sm font-semibold text-[#4D3F36]">
-                パスワード（確認）
+                Confirm Password
                 <input
                   type="password"
                   name="regPasswordConfirm"
                   value={regPasswordConfirm}
                   onChange={(e) => setRegPasswordConfirm(e.target.value)}
                   className="mt-2 w-full rounded-xl border border-[#D3C5B9] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
-                  placeholder="もう一度同じパスワードを入力"
+                  placeholder="Re-enter the same password"
                   required
                 />
               </label>
@@ -277,7 +277,7 @@ export default function LoginPage() {
                 disabled={isLoading}
                 className="w-full rounded-xl bg-brand text-white font-semibold py-3 transition hover:bg-brand-hover disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {isLoading && loadingAction === "register" ? "登録中..." : "新規登録"}
+                {isLoading && loadingAction === "register" ? "Signing up..." : "Sign up"}
               </button>
             </form>
 
@@ -287,7 +287,7 @@ export default function LoginPage() {
                 onClick={() => handleToggleRegister(false)}
                 className="text-[#6B5A4E] font-semibold underline"
               >
-                ログインへ
+                Go to login
               </button>
             </div>
           </>
@@ -301,7 +301,7 @@ export default function LoginPage() {
 
         <div className="text-center">
           <Link href="/" className="text-[#6B5A4E] font-semibold underline">
-            ホームに戻る
+            Back to Home
           </Link>
         </div>
       </div>

@@ -43,7 +43,7 @@ export default function EditModal({ title, onClose, children }: EditModalProps) 
             type="button"
             onClick={onClose}
             className="shrink-0 rounded p-1 text-[#765B49] hover:bg-[#F0E4D8]"
-            aria-label="編集を閉じる"
+            aria-label="Close edit"
           >
             <X size={20} />
           </button>

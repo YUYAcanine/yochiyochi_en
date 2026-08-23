@@ -1,6 +1,7 @@
-// supabase/migrations/0001_new_schema.sql に対応する型定義。
-// `supabase gen types typescript` を実行できる環境であれば、そちらで
-// 生成したファイルに置き換えるのが望ましい（手書きのため乖離しうる）。
+// Type definitions corresponding to supabase/migrations/0001_new_schema.sql.
+// If you have an environment where you can run `supabase gen types typescript`,
+// it is preferable to replace this with the generated file (this one is
+// hand-written and may drift out of sync).
 
 export type Garden = {
   id: string;

@@ -1,11 +1,11 @@
 ﻿"use client";
 
 /**
- * このページの役割
- * - 画像（カメラ/アルバム）を選ぶ
- * - OCR結果のテキスト領域(boxes)を画像上に重ねて表示
- * - タップされたテキストをメニュー辞書に照合し、フェーズ別に判定
- * - 選択中は下部ドロワーに判定結果/事故情報を表示
+ * What this page does
+ * - Lets the user pick an image (camera/album)
+ * - Overlays the OCR text regions (boxes) on top of the image
+ * - Matches tapped text against the menu dictionary and classifies it by phase
+ * - Shows the classification result / incident info in the bottom drawer while selected
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -34,7 +34,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { getCurrentGardenId } from "@/lib/currentGarden";
 import type { PhaseKey } from "@/types/food";
 
-/* 型：OcrImageの型から参照して揃える */
+/* Types: derived from OcrImage's types to stay in sync */
 type OcrImageProps = ComponentProps<typeof OcrImage>;
 type Box = OcrImageProps["boxes"][number];
 type ScaleInfo = OcrImageProps["scale"];
@@ -72,11 +72,11 @@ type AccidentFoodItem = {
 
 const DEFAULT_SCALE: ScaleInfo = { scale: 1, offsetX: 0, offsetY: 0 };
 
-/* 見た目用 */
+/* For layout purposes */
 const RIBBON_HEIGHT = "5rem" as const;
 const RIBBON_SHIFT = "6rem" as const;
 
-/* phase を menu のキーに変換（保険） */
+/* Convert phase to a menu key (fallback safety) */
 const toMenuPhaseKey = (phase: PhaseKey): keyof MenuInfo => {
   if (
     phase === "phase1" ||
@@ -93,7 +93,7 @@ const toMenuPhaseKey = (phase: PhaseKey): keyof MenuInfo => {
 export default function Page2() {
   const router = useRouter();
 
-  // 現在のフェーズ
+  // Current phase
   const { phase, setPhase, children } = useChecklist();
 
   const [memberId, setMemberId] = useState<string | null>(null);
@@ -117,14 +117,14 @@ export default function Page2() {
     setMemberId(storedMemberId);
   }, []);
 
-  // 画像と選択テキスト
+  // Image and selected text
   const [imgSrc, setImgSrc] = useState<string | null>(null);
   const [selectedText, setSelectedText] = useState<string>("");
 
-  // テキスト選択中ならドロワーを開く
+  // Open the drawer whenever text is selected
   const drawerOpen = Boolean(selectedText);
 
-  // 辞書データ（食品名→フェーズ別説明、食品名→ID）
+  // Dictionary data (food name -> per-phase description, food name -> ID)
   const { menuMap, foodIdMap, updateMenuForKey } = useMenuData() as {
     menuMap: Record<string, MenuInfo>;
     foodIdMap: Record<string, number>;
@@ -287,22 +287,22 @@ export default function Page2() {
           .filter((entry) => entry.name.length > 0);
 
         const lines = normalized.map((entry) => {
-          const status = entry.canEat ? "食べられる" : "食べられない";
-          const noteText = entry.note ? `（${entry.note}）` : "";
-          return `・${entry.name}：${status}${noteText}`;
+          const status = entry.canEat ? "can eat" : "cannot eat";
+          const noteText = entry.note ? ` (${entry.note})` : "";
+          return `- ${entry.name}: ${status}${noteText}`;
         });
 
         if (lines.length > 0) {
-          parts.push(`【注意する食材】\n${lines.join("\n")}`);
+          parts.push(`[Foods to watch]\n${lines.join("\n")}`);
         }
       }
 
       if (accidentEntries && accidentEntries.length > 0) {
         const lines = accidentEntries.map((entry) => {
           const name = entry.name?.trim();
-          return `・${name ? `${name}：` : ""}${entry.content}`;
+          return `- ${name ? `${name}: ` : ""}${entry.content}`;
         });
-        parts.push(`【ヒヤリハット報告】\n${lines.join("\n")}`);
+        parts.push(`[Incident reports]\n${lines.join("\n")}`);
       }
 
       return parts.join("\n\n");
@@ -310,17 +310,17 @@ export default function Page2() {
     []
   );
 
-  // 事故情報
+  // Incident info
   const { accidentInfo, showAccidentInfo, loadingAccidentInfo, fetchByFoodId, reset: resetAccident } =
     useAccidentInfo();
 
-  // 画像入力（file→dataURL）
+  // Image input (file -> dataURL)
   const { pickImageAsDataUrl } = useImageInput();
 
-  // OCR（imgSrcが入ると実行）
+  // OCR (runs when imgSrc is set)
   const { boxes, loading, scale, onImgLoad } = useOCR(imgSrc);
 
-  /* 判定：選択文字を辞書に照合して forbidden/ok/none を返す */
+  /* Classify: match the selected text against the dictionary and return forbidden/ok/none */
   const classify = useCallback(
     (raw?: string): Classified => {
       const key = canon(raw);
@@ -361,19 +361,19 @@ export default function Page2() {
     [menuMap, phase, getChildEntries, getAccidentEntries, formatChildNotes]
   );
 
-  // none は表示しない（重要なboxだけ見せる）
+  // Don't display "none" (only show important boxes)
   const visibleFilter = useCallback(
     (b: Box) => classify(b.description).variant !== "none",
     [classify]
   );
 
-  // boxの見た目用（色分けなど）
+  // For box appearance (color-coding, etc.)
   const getBoxVariant = useCallback(
     (b: Box): Variant => classify(b.description).variant,
     [classify]
   );
 
-  // ドロワーに出す判定結果
+  // Classification result shown in the drawer
   const selected = useMemo<Classified>(() => {
     if (!selectedText) {
       return { variant: "none", cookVariant: "none", cookText: "", childText: "" };
@@ -417,7 +417,7 @@ export default function Page2() {
     lastSelectedTextRef.current = selectedText;
   }, [selectedText, buildCookDrafts, isEditingCook]);
 
-  /* 画像選択 */
+  /* Image selection */
   const handlePickFile = useCallback(
     async (file: File) => {
       const dataUrl = await pickImageAsDataUrl(file);
@@ -428,7 +428,7 @@ export default function Page2() {
     [pickImageAsDataUrl, resetAccident]
   );
 
-  /* boxをタップ */
+  /* Tap a box */
   const handlePickText = useCallback(
     (text: string) => {
       setSelectedText(text);
@@ -441,7 +441,7 @@ export default function Page2() {
     [resetAccident]
   );
 
-  /* ドロワー閉じる */
+  /* Close the drawer */
   const handleCloseDrawer = useCallback(() => {
     setSelectedText("");
     resetAccident();
@@ -449,14 +449,14 @@ export default function Page2() {
     setCookMessage(null);
   }, [resetAccident]);
 
-  /* 画像リセット */
+  /* Reset the image */
   const handleResetImage = useCallback(() => {
     setImgSrc(null);
     setSelectedText("");
     resetAccident();
   }, [resetAccident]);
 
-  /* 事故情報表示（食品IDで取得） */
+  /* Show incident info (fetched by food ID) */
   const handleShowAccident = useCallback(async () => {
     if (!selectedText) return;
     const key = canon(selectedText);
@@ -490,17 +490,17 @@ export default function Page2() {
     if (!selectedText) return;
     const key = canon(selectedText);
     if (!key) {
-      setCookMessage("調理情報の編集に失敗しました。");
+      setCookMessage("Failed to edit the cooking information.");
       return;
     }
     const gardenId = await getCurrentGardenId();
     if (gardenId == null) {
-      setCookMessage("会員情報が見つかりません。");
+      setCookMessage("Member information not found.");
       return;
     }
     const foodId = foodIdMap[key];
     if (!foodId) {
-      setCookMessage("調理情報の編集に必要なIDが見つかりません。");
+      setCookMessage("Could not find the ID needed to edit the cooking information.");
       return;
     }
 
@@ -543,29 +543,29 @@ export default function Page2() {
         updateMenuForKey(key, phaseKey, nextValues[phaseKey]);
       });
 
-      setCookMessage("保存しました。");
+      setCookMessage("Saved.");
       setIsEditingCook(false);
     } catch {
-      setCookMessage("保存に失敗しました。");
+      setCookMessage("Failed to save.");
     } finally {
       setCookSaving(false);
     }
   }, [selectedText, foodIdMap, cookDrafts, updateMenuForKey]);
 
-  /* 検索画面へ */
+  /* Go to the search page */
   const handleGoSearch = useCallback(() => {
     router.push("/Search");
   }, [router]);
 
-  /* input[type=file] 共通ハンドラ */
+  /* Shared handler for input[type=file] */
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
       handlePickFile(file);
-      e.target.value = ""; // 同じ画像を再選択できるように
+      e.target.value = ""; // Allow re-selecting the same image
     };
 
-  /* 画像未選択時のUI */
+  /* UI shown before an image is selected */
   const UploadView = (
     <div className="mx-auto w-full max-w-3xl px-8 pt-10">
       <div className="space-y-8">
@@ -581,9 +581,9 @@ export default function Page2() {
             />
           </label>
           <div className="text-[#2f2a27]">
-            <p className="text-xl font-bold text-[#5C3A2E]">写真モード</p>
-            <p className="text-sm">献立表の写真をとるだけで</p>
-            <p className="text-sm">材料名を認識して、調理における注意点を表示します</p>
+            <p className="text-xl font-bold text-[#5C3A2E]">Photo Mode</p>
+            <p className="text-sm">Just take a photo of the menu</p>
+            <p className="text-sm">and it will recognize ingredient names and show cooking precautions</p>
           </div>
         </div>
 
@@ -598,9 +598,9 @@ export default function Page2() {
             />
           </label>
           <div className="text-[#2f2a27]">
-            <p className="text-xl font-bold text-[#5C3A2E]">画像モード</p>
-            <p className="text-sm">写真にとった献立表を選択し</p>
-            <p className="text-sm">材料名を認識して、調理における注意点を表示します</p>
+            <p className="text-xl font-bold text-[#5C3A2E]">Image Mode</p>
+            <p className="text-sm">Select a photo of the menu you took</p>
+            <p className="text-sm">and it will recognize ingredient names and show cooking precautions</p>
           </div>
         </div>
 
@@ -609,13 +609,13 @@ export default function Page2() {
             type="button"
             onClick={handleGoSearch}
             className="flex h-20 w-20 shrink-0 items-center justify-center rounded-md border-2 border-[#b79f86] bg-[#E8DCD0] md:h-24 md:w-24"
-            aria-label="検索モードへ"
+            aria-label="Go to search mode"
           >
             <Search className="h-10 w-10 text-[#6B5A4E] md:h-12 md:w-12" />
           </button>
           <div className="text-[#2f2a27]">
-            <p className="text-xl font-bold text-[#5C3A2E]">検索モード</p>
-            <p className="text-sm">材料名で検索して、調理における注意点を表示します</p>
+            <p className="text-xl font-bold text-[#5C3A2E]">Search Mode</p>
+            <p className="text-sm">Search by ingredient name and see cooking precautions</p>
           </div>
         </div>
       </div>
@@ -635,7 +635,7 @@ export default function Page2() {
       <Ribbon
         href="/"
         logoSrc="/yoyochi3-ribbon.png"
-        alt="よちヨチ ロゴ"
+        alt="Yochiyochi logo"
         heightClass="h-20"
         bgClass="bg-[#F0E4D8]"
         containerClassName="translate-y-0"

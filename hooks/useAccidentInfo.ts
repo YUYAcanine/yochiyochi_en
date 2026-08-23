@@ -20,11 +20,11 @@ export function useAccidentInfo() {
     setLoadingAccidentInfo(false);
   }, []);
 
-  // RLSにより、公開(is_public=true)の行と自園(garden_id)の行だけが返る。
-  // ログインしていない場合はis_public=trueの行のみ取得できる。
+  // Because of RLS, only public rows (is_public=true) and this nursery's own rows
+  // (garden_id) are returned. When not logged in, only is_public=true rows can be fetched.
   const fetchByFoodId = useCallback(async (foodId: number | null) => {
     if (!foodId) {
-      setAccidentInfo("事故情報が見つかりません。");
+      setAccidentInfo("Accident information not found.");
       setShowAccidentInfo(true);
       return;
     }
@@ -51,7 +51,7 @@ export function useAccidentInfo() {
           .filter(Boolean)
           .join("\n\n");
         if (generalLines) {
-          sections.push(`事故情報\n${generalLines}`);
+          sections.push(`Accident information\n${generalLines}`);
         }
 
         const gardenLines = gardenRows
@@ -59,14 +59,14 @@ export function useAccidentInfo() {
           .filter(Boolean)
           .join("\n");
         if (gardenLines) {
-          sections.push(`ヒヤリハット\n${gardenLines}`);
+          sections.push(`Incidents\n${gardenLines}`);
         }
       }
 
-      setAccidentInfo(sections.length === 0 ? "事故情報が見つかりません。" : sections.join("\n\n"));
+      setAccidentInfo(sections.length === 0 ? "Accident information not found." : sections.join("\n\n"));
     } catch (e) {
       console.error("useAccidentInfo error:", e);
-      setAccidentInfo("事故情報の取得に失敗しました。");
+      setAccidentInfo("Failed to fetch accident information.");
     } finally {
       setLoadingAccidentInfo(false);
     }

@@ -16,8 +16,9 @@ const findFoodId = async (
   return data?.id ?? null;
 };
 
-// 食材名からfoods.idを解決する。
-// 1) 共通食材(garden_id is null) 2) 園独自食材 3) 表記揺れ(food_aliases) の順で探す。
+// Resolves foods.id from a food name.
+// Searches in this order: 1) shared foods (garden_id is null) 2) nursery-specific
+// foods 3) spelling variants (food_aliases).
 export const resolveFoodId = async (
   client: SupabaseClient<Database>,
   gardenId: string,

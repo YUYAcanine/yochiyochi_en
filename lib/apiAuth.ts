@@ -7,7 +7,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error(
-    "NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY が設定されていません（.env.local を確認してください）"
+    "NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY is not set (check your .env.local)"
   );
 }
 
@@ -24,9 +24,9 @@ const bearerTokenFrom = (req: NextRequest): string | null => {
   return token.length > 0 ? token : null;
 };
 
-// リクエストのAuthorizationヘッダーからログインユーザーを特定し、
-// そのユーザーが所属するgarden_idを解決する。
-// 呼び出し元のfetchはlib/apiFetch.tsのauthedFetchを使うこと。
+// Identifies the logged-in user from the request's Authorization header,
+// and resolves the garden_id that user belongs to.
+// The caller's fetch should use authedFetch from lib/apiFetch.ts.
 export const getAuthedContext = async (req: NextRequest): Promise<AuthedContext | null> => {
   const token = bearerTokenFrom(req);
   if (!token) return null;

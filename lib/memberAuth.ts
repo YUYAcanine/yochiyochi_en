@@ -1,5 +1,5 @@
-// 会員ID(memberId)をSupabase Authのemailに変換するための共通ロジック。
-// クライアント・サーバー両方から参照するため秘密情報は持たない。
+// Shared logic for converting a member ID (memberId) into a Supabase Auth email.
+// This holds no secrets since it is referenced from both client and server.
 
 const sanitizeForEmailLocalPart = (value: string) =>
   value.trim().toLowerCase().replace(/[^a-z0-9.-]/g, "_");

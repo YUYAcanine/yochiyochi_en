@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 開発サーバーへLAN内の別端末(例: スマホ)からアクセスして動作確認するための許可設定。
-  // next dev にのみ影響し、本番ビルド/デプロイ版には影響しない。
+  // Allows accessing the dev server from another device on the LAN (e.g. a phone) for testing.
+  // Only affects `next dev`; has no effect on production builds/deploys.
   allowedDevOrigins: ["192.168.50.220", "192.168.11.9", "10.0.4.249"],
 };
 

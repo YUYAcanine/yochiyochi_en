@@ -13,7 +13,7 @@ type ScaleObj = { scale: number; offsetX?: number; offsetY?: number };
 type Props = {
   imgSrc: string;
   boxes: OCRBox[];
-  // number でも {scale, offsetX, offsetY} でも受け付ける（useOCR 両対応）
+  // Accepts either a number or {scale, offsetX, offsetY} (works with both useOCR variants)
   scale?: number | ScaleObj;
   phase: PhaseKey;
   onImgLoad?: React.ReactEventHandler<HTMLImageElement>;
@@ -84,7 +84,7 @@ export default function OcrImage({
   return (
     <div className="relative inline-block">
       <img src={imgSrc} alt="" onLoad={onImgLoad} />
-      {/* Overlay（クリックできるよう pointer-events 無効化しない） */}
+      {/* Overlay (don't disable pointer-events, so it stays clickable) */}
       <div className="absolute inset-0">
         {filtered.map((b, i) => {
           const rect = getRect(b.boundingPoly?.vertices || []);
