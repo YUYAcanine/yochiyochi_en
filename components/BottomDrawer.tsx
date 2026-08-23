@@ -23,6 +23,7 @@ type Props = {
   onHideAccidentInfo?: () => void;
   accidentInfo?: string;
   showAccidentInfo?: boolean;
+  loadingAccidentInfo?: boolean;
   cookEditor?: {
     canEdit: boolean;
     isEditing: boolean;
@@ -49,6 +50,7 @@ export default function BottomDrawer({
   onHideAccidentInfo,
   accidentInfo,
   showAccidentInfo,
+  loadingAccidentInfo,
   cookEditor,
 }: Props) {
   const open = !!openText && (!!cookDescription || !!childDescription) && variant !== "none";
@@ -96,7 +98,7 @@ export default function BottomDrawer({
                     onClick={cookEditor.onStart}
                     className="text-[#6b5a4e] underline underline-offset-4 font-semibold transition-opacity duration-200 hover:opacity-70 py-1"
                   >
-                    調理情報を編集
+                    調理方法を編集
                   </button>
                 </div>
               )}
@@ -126,23 +128,33 @@ export default function BottomDrawer({
           </div>
         )}
 
-        {showAccidentInfo && accidentInfo && (
+        {showAccidentInfo && (
           <div className="mt-4 pt-4 border-t border-[#E8DCD0]">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-semibold text-[#5C3A2E]">事故情報</h3>
               <button
                 type="button"
                 onClick={() => onHideAccidentInfo && onHideAccidentInfo()}
-                className="text-[#6b5a4e] text-decoration-underline text-underline-offset-4 
+                className="text-[#6b5a4e] text-decoration-underline text-underline-offset-4
                            font-semibold transition-opacity duration-200 hover:opacity-70"
               >
                 閉じる
               </button>
             </div>
             <div className="bg-[#F5EDE6] rounded-lg p-4 border border-[#E3D4C7]">
-              <div className="text-[#4D3F36] leading-relaxed whitespace-pre-wrap">
-                {accidentInfo}
-              </div>
+              {loadingAccidentInfo ? (
+                <div className="flex items-center justify-center gap-2 py-4 text-[#6B5A4E]">
+                  <span
+                    className="h-5 w-5 animate-spin rounded-full border-2 border-[#D8C7B8] border-t-[#5C3A2E]"
+                    aria-hidden="true"
+                  />
+                  <span className="text-sm">読み込み中...</span>
+                </div>
+              ) : (
+                <div className="text-[#4D3F36] leading-relaxed whitespace-pre-wrap">
+                  {accidentInfo}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -153,7 +165,7 @@ export default function BottomDrawer({
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6"
           role="dialog"
-          aria-label="調理情報を編集"
+          aria-label="調理方法を編集"
         >
           <div className="w-full max-w-3xl rounded-2xl border border-[#E8DCD0] bg-white shadow-2xl p-6">
             <div className="flex items-center justify-between mb-4">

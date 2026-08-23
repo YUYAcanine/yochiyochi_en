@@ -14,8 +14,8 @@ type Props = {
   /** 画像の代替テキスト（既定: "Logo"） */
   alt?: string;
   /**
-   * 高さクラス（既定: h-24）。固定ヘッダなので
-   * ページ側は同じ高さ分の padding-top をつけてね（例: pt-24）
+   * 高さクラス（既定: h-20）。固定ヘッダなので
+   * ページ側は同じ高さ分の padding-top をつけてね（例: pt-20）
    */
   heightClass?: string;
   /** 背景色クラス（既定: bg-[#F0E4D8]） */
@@ -37,7 +37,7 @@ export default function Ribbon({
   href = "/",
   logoSrc,
   alt = "Logo",
-  heightClass = "h-24",
+  heightClass = "h-20",
   bgClass = "bg-[#F0E4D8]",
   containerClassName = "",
   logoWidth = 240,

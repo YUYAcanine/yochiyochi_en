@@ -12,10 +12,12 @@ type AccidentRow = {
 export function useAccidentInfo() {
   const [accidentInfo, setAccidentInfo] = useState<string>("");
   const [showAccidentInfo, setShowAccidentInfo] = useState<boolean>(false);
+  const [loadingAccidentInfo, setLoadingAccidentInfo] = useState<boolean>(false);
 
   const reset = useCallback(() => {
     setAccidentInfo("");
     setShowAccidentInfo(false);
+    setLoadingAccidentInfo(false);
   }, []);
 
   // RLSにより、公開(is_public=true)の行と自園(garden_id)の行だけが返る。
@@ -27,6 +29,8 @@ export function useAccidentInfo() {
       return;
     }
 
+    setLoadingAccidentInfo(true);
+    setShowAccidentInfo(true);
     try {
       const { data, error } = await supabase
         .from("accidents")
@@ -60,13 +64,13 @@ export function useAccidentInfo() {
       }
 
       setAccidentInfo(sections.length === 0 ? "事故情報が見つかりません。" : sections.join("\n\n"));
-      setShowAccidentInfo(true);
     } catch (e) {
       console.error("useAccidentInfo error:", e);
       setAccidentInfo("事故情報の取得に失敗しました。");
-      setShowAccidentInfo(true);
+    } finally {
+      setLoadingAccidentInfo(false);
     }
   }, []);
 
-  return { accidentInfo, showAccidentInfo, fetchByFoodId, reset };
+  return { accidentInfo, showAccidentInfo, loadingAccidentInfo, fetchByFoodId, reset };
 }

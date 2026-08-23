@@ -10,6 +10,7 @@ import { authedFetch } from "@/lib/apiFetch";
 import EditModal from "@/components/EditModal";
 
 type RegisterTab = "child" | "cook" | "hiyari";
+const NEW_CHILD_SENTINEL = "__new_child__";
 type ChildFormMode = "register" | "edit";
 type CookDrafts = {
   phase1: string;
@@ -58,6 +59,8 @@ type SuggestionInputProps = {
   type?: "text" | "number";
   min?: number;
   unregisteredMessage?: string;
+  duplicateMessage?: string;
+  disableSuggestions?: boolean;
 };
 
 const formatDateTime = (value: string) => {
@@ -81,13 +84,13 @@ function SuggestionInput({
   type = "text",
   min,
   unregisteredMessage,
+  duplicateMessage,
+  disableSuggestions,
 }: SuggestionInputProps) {
   const [open, setOpen] = useState(false);
 
   const suggestions = useMemo(() => {
-    if (type !== "text") return [];
-    const q = canon(value.trim());
-    if (!q) return [];
+    if (type !== "text" || disableSuggestions) return [];
 
     const unique = Array.from(
       new Set(
@@ -97,15 +100,16 @@ function SuggestionInput({
       )
     );
 
-    return unique
-      .filter((item) => {
-        const c = canon(item);
-        return c.includes(q) || q.includes(c);
-      })
-      .slice(0, 8);
-  }, [value, options, type]);
+    const q = canon(value.trim());
+    if (!q) return unique;
 
-  const showDropdown = type === "text" && open && value.trim() && suggestions.length > 0;
+    return unique.filter((item) => {
+      const c = canon(item);
+      return c.includes(q) || q.includes(c);
+    });
+  }, [value, options, type, disableSuggestions]);
+
+  const showDropdown = type === "text" && open && suggestions.length > 0;
 
   const isUnregistered = useMemo(() => {
     if (!unregisteredMessage) return false;
@@ -113,6 +117,13 @@ function SuggestionInput({
     if (!q) return false;
     return !options.some((item) => canon(item.trim()) === q);
   }, [value, options, unregisteredMessage]);
+
+  const isDuplicate = useMemo(() => {
+    if (!duplicateMessage) return false;
+    const q = canon(value.trim());
+    if (!q) return false;
+    return options.some((item) => canon(item.trim()) === q);
+  }, [value, options, duplicateMessage]);
 
   return (
     <div className={`relative ${wrapperClassName ?? ""}`}>
@@ -147,6 +158,9 @@ function SuggestionInput({
       )}
       {!showDropdown && isUnregistered && (
         <p className="mt-1 text-xs text-red-600">{unregisteredMessage}</p>
+      )}
+      {!showDropdown && !isUnregistered && isDuplicate && (
+        <p className="mt-1 text-xs text-red-600">{duplicateMessage}</p>
       )}
     </div>
   );
@@ -599,7 +613,7 @@ export default function Page4() {
     setFormMsg(null);
   };
 
-  const handleChildSubmit = async (e: React.FormEvent) => {
+  const handleNewChildSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormMsg(null);
 
@@ -627,10 +641,10 @@ export default function Page4() {
 
       if (!res.ok) throw new Error("save failed");
 
-      setFormMsg("登録しました。");
+      setFormMsg("登録しました。食材を追加する場合は続けて登録できます。");
       setReloadTick((prev) => prev + 1);
-      resetForms();
-      setShowForm(false);
+      setFoodEditTargetName(childName);
+      setEditingSourceName(childName);
     } catch {
       setFormMsg("登録に失敗しました。");
     } finally {
@@ -722,6 +736,10 @@ export default function Page4() {
       if (!res.ok) throw new Error("save failed");
 
       setReloadTick((prev) => prev + 1);
+      if (foodEditTargetName === NEW_CHILD_SENTINEL) {
+        setFoodEditTargetName(childName);
+        setEditingSourceName(childName);
+      }
       backToFoodList();
     } catch {
       setFormMsg("保存に失敗しました。");
@@ -1147,14 +1165,14 @@ export default function Page4() {
     <main className="h-[100dvh] overflow-hidden bg-[#FFFDF8] text-[#2f2a27]">
       <Ribbon
         href="/"
-        logoSrc="/yoyochi.jpg"
+        logoSrc="/yoyochi3-ribbon.png"
         alt="よちヨチ ロゴ"
-        heightClass="h-24"
+        heightClass="h-20"
         bgClass="bg-[#F0E4D8]"
-        logoClassName="h-20 w-auto object-contain"
+        logoClassName="h-[4.5rem] w-auto object-contain"
       />
 
-      <div ref={headerRef} className="fixed inset-x-0 top-24 z-40 border-b border-[#E6D7C8] bg-[#FFFDF8] shadow-md">
+      <div ref={headerRef} className="fixed inset-x-0 top-20 z-40 border-b border-[#E6D7C8] bg-[#FFFDF8] shadow-md">
         <div className="mx-auto w-full max-w-4xl px-3 pb-3 pt-3 sm:px-5">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
             <div className="grid grid-cols-3 gap-1 rounded-full bg-[#ece4dc] p-1 md:w-fit md:shrink-0">
@@ -1226,8 +1244,15 @@ export default function Page4() {
         onClick={() => {
           resetForms();
           setChildFormMode("register");
-          setFoodEditTargetName(null);
           setEditingAccidentId(null);
+          if (activeTab === "child") {
+            setFoodEditTargetName(NEW_CHILD_SENTINEL);
+            setEditingSourceName(null);
+            setShowFoodForm(false);
+            setFormMsg(null);
+            return;
+          }
+          setFoodEditTargetName(null);
           if (activeTab === "cook") {
             const q = searchText.trim();
             if (q) {
@@ -1251,12 +1276,10 @@ export default function Page4() {
 
       <div
         className="h-full overflow-y-auto overscroll-none"
-        style={{ paddingTop: headerHeight + 112 }}
+        style={{ paddingTop: headerHeight + 96 }}
       >
       <div className="mx-auto w-full max-w-4xl px-3 pb-8 sm:px-5">
         <section className="space-y-3">
-          {listLoading && <p className="text-sm text-[#6b5a4e]">読み込み中...</p>}
-
           {!listLoading &&
             (activeTab === "hiyari" ? filteredAccidents.length === 0 : namesForTab.length === 0) && (
             <p className="rounded-md bg-[#F3F3F3] p-4 text-sm text-[#6b5a4e]">
@@ -1314,39 +1337,7 @@ export default function Page4() {
 
       {showForm && (
         <EditModal title={primaryActionLabel} onClose={closeAddForm}>
-          {activeTab === "child" ? (
-            <form onSubmit={handleChildSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-4">
-              <p className="text-sm text-[#6b5a4e]">
-                まず園児名を登録します。注意する食材は登録後に追加できます。
-              </p>
-              <label className="block text-sm font-medium text-[#2f2a27]">
-                園児名
-                <SuggestionInput
-                  value={childName}
-                  onChangeValue={setChildName}
-                  options={childOptions}
-                  className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-base"
-                />
-              </label>
-
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={closeAddForm}
-                  className="h-11 rounded-lg border border-brand bg-[#FFFDF8] text-sm font-bold text-brand"
-                >
-                  キャンセル
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitLoading}
-                  className="h-11 rounded-lg bg-brand text-sm font-bold text-white shadow-sm disabled:opacity-70"
-                >
-                  {submitLoading ? "登録中" : "登録"}
-                </button>
-              </div>
-            </form>
-          ) : activeTab === "cook" ? (
+          {activeTab === "cook" ? (
             <form onSubmit={handleCookSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-4">
               <label className="block text-sm font-medium text-[#2f2a27]">
                 食材名
@@ -1354,6 +1345,8 @@ export default function Page4() {
                   value={cookFoodName}
                   onChangeValue={setCookFoodName}
                   options={cookFoodOptions}
+                  disableSuggestions
+                  duplicateMessage="すでに登録されています。"
                   className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-base"
                 />
               </label>
@@ -1407,13 +1400,13 @@ export default function Page4() {
           ) : (
             <form onSubmit={handleAccidentSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-4">
               <label className="block text-sm font-medium text-[#2f2a27]">
-                園児名
+                園児名 (選択)
                 <SuggestionInput
                   value={accidentChildName}
                   onChangeValue={setAccidentChildName}
                   options={childOptions}
                   className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-base"
-                  unregisteredMessage="登録されている園児名を入れてください。園児情報から追加できます。"
+                  unregisteredMessage="登録されている園児名を選択してください。園児情報から追加できます。"
                 />
               </label>
 
@@ -1424,6 +1417,7 @@ export default function Page4() {
                   onChangeValue={setAccidentFood}
                   options={cookFoodOptions}
                   className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-base"
+                  unregisteredMessage="登録されている食材名を選択してください。調理方法から追加できます。"
                 />
               </label>
 
@@ -1437,14 +1431,19 @@ export default function Page4() {
                 />
               </label>
 
-              <label className="inline-flex items-center gap-2 text-sm text-[#2f2a27]">
-                <input
-                  type="checkbox"
-                  checked={accidentPublic}
-                  onChange={(e) => setAccidentPublic(e.target.checked)}
-                  className="h-4 w-4"
-                />
-                公開する
+              <label className="block">
+                <span className="inline-flex items-center gap-2 text-sm text-[#2f2a27]">
+                  <input
+                    type="checkbox"
+                    checked={accidentPublic}
+                    onChange={(e) => setAccidentPublic(e.target.checked)}
+                    className="h-4 w-4"
+                  />
+                  公開する
+                </span>
+                <p className="mt-1 text-xs text-[#8A776A]">
+                  アプリを利用しているユーザーにヒヤリハット内容のみが共有されます。園児名は公開されません。
+                </p>
               </label>
 
               <div className="grid grid-cols-2 gap-3 pt-2">
@@ -1471,7 +1470,14 @@ export default function Page4() {
       )}
 
       {foodEditTargetName && (
-        <EditModal title={`${foodEditTargetName}の情報を編集`} onClose={closeInlineEditor}>
+        <EditModal
+          title={
+            foodEditTargetName === NEW_CHILD_SENTINEL
+              ? "園児追加"
+              : `${foodEditTargetName}の情報を編集`
+          }
+          onClose={closeInlineEditor}
+        >
           {showFoodForm ? (
             <form onSubmit={handleFoodFormSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-4">
               <h4 className="text-sm font-bold text-[#5C3A2E]">
@@ -1529,23 +1535,41 @@ export default function Page4() {
               {formMsg && <p className="text-sm text-[#6b5a4e]">{formMsg}</p>}
             </form>
           ) : (
-            <form onSubmit={handleChildNameSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-4">
+            <form
+              onSubmit={
+                foodEditTargetName === NEW_CHILD_SENTINEL ? handleNewChildSubmit : handleChildNameSubmit
+              }
+              onKeyDownCapture={preventImeEnterSubmit}
+              className="space-y-4"
+            >
               <h4 className="text-sm font-bold text-[#5C3A2E]">基本情報</h4>
               <label className="block text-sm font-medium text-[#2f2a27]">
                 園児名
-                <SuggestionInput
-                  value={childName}
-                  onChangeValue={setChildName}
-                  options={childOptions}
-                  className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-base"
-                />
+                {foodEditTargetName === NEW_CHILD_SENTINEL ? (
+                  <SuggestionInput
+                    value={childName}
+                    onChangeValue={setChildName}
+                    options={childOptions}
+                    disableSuggestions
+                    duplicateMessage="すでに登録されている園児です。"
+                    className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-base"
+                  />
+                ) : (
+                  <SuggestionInput
+                    value={childName}
+                    onChangeValue={setChildName}
+                    options={childOptions}
+                    className="mt-1 h-10 w-full rounded-lg border border-[#B7A99A] bg-white px-3 text-base"
+                  />
+                )}
               </label>
 
               <div className="border-t border-[#E6D7C8] pt-4">
                 <h4 className="text-sm font-bold text-[#5C3A2E]">登録済みの食材</h4>
                 {(() => {
                   const currentFoods = answerItems.filter(
-                    (item) => item.child_name === foodEditTargetName && item.no_eat.trim().length > 0
+                    (item) =>
+                      item.child_name === foodEditTargetName && item.no_eat.trim().length > 0
                   );
                   if (currentFoods.length === 0) {
                     return <p className="mt-2 text-sm text-[#6b5a4e]">未登録です。</p>;
@@ -1590,10 +1614,14 @@ export default function Page4() {
                 <button
                   type="button"
                   onClick={startAddFood}
-                  className="mt-3 w-full rounded-lg border border-brand bg-[#FFFDF8] py-2 text-sm font-bold text-[#765B49] hover:bg-[#F0E4D8]"
+                  disabled={!childName.trim()}
+                  className="mt-3 w-full rounded-lg border border-brand bg-[#FFFDF8] py-2 text-sm font-bold text-[#765B49] hover:bg-[#F0E4D8] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#FFFDF8]"
                 >
                   + 注意する食材を追加
                 </button>
+                {!childName.trim() && (
+                  <p className="mt-1 text-xs text-[#8A776A]">園児名を入力すると食材を追加できます。</p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-2">
@@ -1609,17 +1637,23 @@ export default function Page4() {
                   disabled={submitLoading}
                   className="h-11 rounded-lg bg-brand text-sm font-bold text-white shadow-sm disabled:opacity-70"
                 >
-                  {submitLoading ? "登録中" : "保存"}
+                  {submitLoading
+                    ? "登録中"
+                    : foodEditTargetName === NEW_CHILD_SENTINEL
+                      ? "登録"
+                      : "保存"}
                 </button>
               </div>
-              <button
-                type="button"
-                onClick={() => handleDeleteChildPanel(foodEditTargetName)}
-                disabled={submitLoading}
-                className="h-11 w-full rounded-lg border border-[#d64a3a] bg-white text-sm font-bold text-[#d64a3a] disabled:opacity-70"
-              >
-                この園児を削除
-              </button>
+              {foodEditTargetName !== NEW_CHILD_SENTINEL && (
+                <button
+                  type="button"
+                  onClick={() => handleDeleteChildPanel(foodEditTargetName)}
+                  disabled={submitLoading}
+                  className="h-11 w-full rounded-lg border border-[#d64a3a] bg-white text-sm font-bold text-[#d64a3a] disabled:opacity-70"
+                >
+                  この園児を削除
+                </button>
+              )}
               {formMsg && <p className="text-sm text-[#6b5a4e]">{formMsg}</p>}
             </form>
           )}
@@ -1676,22 +1710,23 @@ export default function Page4() {
         <EditModal title="ヒヤリハットを編集" onClose={cancelInlineAccidentEdit}>
           <form onSubmit={handleInlineAccidentSubmit} onKeyDownCapture={preventImeEnterSubmit} className="space-y-3" aria-busy={submitLoading}>
             <label className="block text-sm font-medium text-[#2f2a27]">
-              園児名
+              園児名 (選択)
               <SuggestionInput
                 value={accidentChildName}
                 onChangeValue={setAccidentChildName}
                 options={childOptions}
                 className="mt-1 h-10 w-full rounded border-[2px] border-[#7f7f7f] bg-white px-2"
-                unregisteredMessage="登録されている園児名を入れてください。園児情報から追加できます。"
+                unregisteredMessage="登録されている園児名を選択してください。園児情報から追加できます。"
               />
             </label>
             <label className="block text-sm font-medium text-[#2f2a27]">
-              食材名
+              食材名 (選択)
               <SuggestionInput
                 value={accidentFood}
                 onChangeValue={setAccidentFood}
                 options={cookFoodOptions}
                 className="mt-1 h-10 w-full rounded border-[2px] border-[#7f7f7f] bg-white px-2"
+                unregisteredMessage="登録されている食材名を選択してください。調理方法から追加できます。"
               />
             </label>
             <label className="block text-sm font-medium text-[#2f2a27]">
@@ -1703,14 +1738,19 @@ export default function Page4() {
                 className="mt-1 w-full rounded border-[2px] border-[#7f7f7f] bg-white p-2"
               />
             </label>
-            <label className="inline-flex items-center gap-2 text-sm text-[#2f2a27]">
-              <input
-                type="checkbox"
-                checked={accidentPublic}
-                onChange={(e) => setAccidentPublic(e.target.checked)}
-                className="h-4 w-4"
-              />
-              公開する
+            <label className="block">
+              <span className="inline-flex items-center gap-2 text-sm text-[#2f2a27]">
+                <input
+                  type="checkbox"
+                  checked={accidentPublic}
+                  onChange={(e) => setAccidentPublic(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                公開する
+              </span>
+              <p className="mt-1 text-xs text-[#8A776A]">
+                アプリを利用しているユーザーにヒヤリハット内容のみが共有されます。園児名は公開されません。
+              </p>
             </label>
             <div className="grid grid-cols-3 gap-3">
               <button
@@ -1739,6 +1779,17 @@ export default function Page4() {
             {formMsg && <p className="text-sm text-[#6b5a4e]">{formMsg}</p>}
           </form>
         </EditModal>
+      )}
+
+      {listLoading && (
+        <div
+          className="fixed inset-0 z-[55] flex items-center justify-center bg-white/60 backdrop-blur-[1px]"
+          role="status"
+          aria-live="polite"
+        >
+          <Loader2 className="h-10 w-10 animate-spin text-brand" aria-hidden="true" />
+          <span className="sr-only">読み込み中...</span>
+        </div>
       )}
 
       {submitLoading && (

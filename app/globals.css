@@ -45,3 +45,12 @@ html, body {
     -webkit-overflow-scrolling: touch;
   }
 }
+
+/* 入力欄タップ時の自動拡大を防止（フォントサイズが16px未満だとiOS Safariが自動でズームする） */
+@media (max-width: 767px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}

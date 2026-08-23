@@ -33,6 +33,7 @@ type Props = {
 
   accidentInfo: string;
   showAccidentInfo: boolean;
+  loadingAccidentInfo?: boolean;
   cookEditor?: {
     canEdit: boolean;
     isEditing: boolean;
@@ -58,6 +59,7 @@ export default function OcrBottomDrawer({
   onHideAccident,
   accidentInfo,
   showAccidentInfo,
+  loadingAccidentInfo,
   cookEditor,
 }: Props) {
   return (
@@ -73,6 +75,7 @@ export default function OcrBottomDrawer({
       onHideAccidentInfo={onHideAccident}
       accidentInfo={accidentInfo}
       showAccidentInfo={showAccidentInfo}
+      loadingAccidentInfo={loadingAccidentInfo}
       cookEditor={cookEditor}
     />
   );
