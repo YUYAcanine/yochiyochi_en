@@ -432,6 +432,33 @@ export default function Page4() {
     });
   };
 
+  const handleAddClick = () => {
+    resetForms();
+    setChildFormMode("register");
+    setEditingAccidentId(null);
+    if (activeTab === "child") {
+      setFoodEditTargetName(NEW_CHILD_SENTINEL);
+      setEditingSourceName(null);
+      setShowFoodForm(false);
+      setFormMsg(null);
+      return;
+    }
+    setFoodEditTargetName(null);
+    if (activeTab === "cook") {
+      const q = searchText.trim();
+      if (q) {
+        loadCookDraftFromName(q);
+      }
+    } else if (activeTab === "hiyari") {
+      const q = searchText.trim();
+      if (q) {
+        setAccidentFood(q);
+      }
+    }
+    setShowForm(true);
+    setFormMsg(null);
+  };
+
   const openCookEditor = (foodName: string) => {
     loadCookDraftFromName(foodName);
     setShowForm(true);
@@ -1241,32 +1268,7 @@ export default function Page4() {
 
       <button
         type="button"
-        onClick={() => {
-          resetForms();
-          setChildFormMode("register");
-          setEditingAccidentId(null);
-          if (activeTab === "child") {
-            setFoodEditTargetName(NEW_CHILD_SENTINEL);
-            setEditingSourceName(null);
-            setShowFoodForm(false);
-            setFormMsg(null);
-            return;
-          }
-          setFoodEditTargetName(null);
-          if (activeTab === "cook") {
-            const q = searchText.trim();
-            if (q) {
-              loadCookDraftFromName(q);
-            }
-          } else if (activeTab === "hiyari") {
-            const q = searchText.trim();
-            if (q) {
-              setAccidentFood(q);
-            }
-          }
-          setShowForm(true);
-          setFormMsg(null);
-        }}
+        onClick={handleAddClick}
         aria-label={primaryActionLabel}
         title={primaryActionLabel}
         className="fixed bottom-6 right-6 z-40 flex h-16 w-16 items-center justify-center rounded-full bg-brand text-white shadow-lg transition hover:bg-brand-hover active:scale-95"
@@ -1282,9 +1284,16 @@ export default function Page4() {
         <section className="space-y-3">
           {!listLoading &&
             (activeTab === "hiyari" ? filteredAccidents.length === 0 : namesForTab.length === 0) && (
-            <p className="rounded-md bg-[#F3F3F3] p-4 text-sm text-[#6b5a4e]">
-              表示できるデータがありません。
-            </p>
+            <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+              <p className="text-sm text-[#6b5a4e]">表示できるデータがありません。</p>
+              <button
+                type="button"
+                onClick={handleAddClick}
+                className="text-base font-bold text-blue-600 underline underline-offset-2 hover:text-blue-700"
+              >
+                {activeTab === "hiyari" ? "ヒヤリハットを追加する" : "園児を追加する"}
+              </button>
+            </div>
           )}
 
           {!listLoading && activeTab !== "hiyari" &&
